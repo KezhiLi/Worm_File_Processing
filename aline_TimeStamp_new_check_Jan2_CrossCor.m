@@ -4,10 +4,11 @@ clc
 %% TRAJECTORIES DATA FILE
 
 % the index of file in consideration
-nf = 7; % 1 
+nf = 1; % 1 
 
 % the hdf5/csv/xml file folder
-path2 = 'C:\Kezhi\MyCode!!!\ManualVideos\Check_Align_samples\';
+% path2 = 'C:\Kezhi\MyCode!!!\ManualVideos\Check_Align_samples\';
+path2 = 'C:\Kezhi\MyCode!!!\ManualVideos\';
 
 % make all subfolder available
 addpath(genpath([path2,'.']));
@@ -16,17 +17,22 @@ ffmpeg = 'C:\FFMPEG\bin\ffmpeg';
 ffprobe = 'C:\FFMPEG\bin\ffprobe';
 
 % the root 
-root = 'C:\Kezhi\MyCode!!!\ManualVideos\Check_Align_samples\';
-hdf_folder = root;
-trajectories_folder = [root,'Results\'];
+root = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
+hdf_folder = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
+trajectories_folder = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
 
 root_folder = genpath([root,'.']);
 
 traj_file=dir([trajectories_folder,'*_trajectories.hdf5']);
 num_file = size(traj_file,1);
+good_ind = [];
 
-% for nf = 1:1;
+save path2.mat
+for nf = 1: length(traj_file);
+%for nf = 1:length(traj_file);
 % choose index of file
+
+ try
 
 name  = traj_file(nf).name(1:end-18);
 excel_name = [name, '.log.csv'];
@@ -39,7 +45,8 @@ timestamp = h5read(trajectories_file, '/timestamp/raw');
 timestamp_time = h5read(trajectories_file, '/timestamp/time');
 
 % import csv data
-ss = importdata([root,excel_name]);
+%ss = importdata([root,excel_name]);
+ss = read_csv_data(root,excel_name);
 
 % read csv data: real time, media time, and stage coordinates xy
 real_time = ss.textdata(2:end,1);
@@ -52,14 +59,19 @@ if data_rows+1 ~= size(ss.textdata,1);
     error('excel file problem: number of rows are not in uniform')
 end
 
-% convert time from text to number 
-media_time_vec = [];
+
 
 % convert time to seconds value
-for ii = 1:data_rows;
-    str1 = media_time(ii);
-    t1 = datevec(str1);
-    media_time_vec(ii) = t1(5)*60 + t1(6);
+if isa(media_time,'double')
+    media_time_vec = media_time;
+else
+    % convert time from text to number 
+    media_time_vec = size(media_time);
+    for ii = 1:data_rows;
+        str1 = media_time(ii);
+        t1 = datevec(str1);
+        media_time_vec(ii) = t1(5)*60 + t1(6);
+    end
 end
 
 % hdf5 file path
@@ -116,7 +128,7 @@ mask_previous = mask(:,:,1);
 %% calculate shift from cross correlatoin
 % set parameters
 timeDiff = 1; % how many frames between aligned images?
-dS = 4; % pixel downsampling factor (2 means half size)
+dS = 2; % pixel downsampling factor (2 means half size)
 
 % estimate transformation from one image frame to another
 No_mask = size(mask, 3);
@@ -199,11 +211,17 @@ num_pt = pt;
 % figure, plot(diff_mask_central(10000:20000,3)), hold on, plot(diff_mask_central(10000:20000,7)/25,'red')
 % figure, plot(diff_mask_central(end-10000:end,3)), hold on, plot(diff_mask_central(end-10000:end,7)/25,'red')
 
-save_file = ['check_ex',num2str(nf),'.mat'];
-save(save_file);
+% save_file = ['check_ex',num2str(nf),'.mat'];
+% save(save_file);
+% 
+% load_file = ['check_ex',num2str(nf),'.mat'];
+% load(load_file)
 
-load_file = ['check_ex',num2str(nf),'.mat'];
-load(load_file)
+% save_file = [name,'-data.mat'];
+% save(save_file);
+% 
+% load_file = [name,'-data.mat'];
+% load(load_file)
 
 %% read pixels per microns from xml files
 for qq = 1:2;
@@ -260,7 +278,7 @@ moving_frame = zeros(diff_leng,2);
 % % identify moving frames: central moves >3 && areas change > threshold
 % moving_frame(:,1) = (diff_mask_central(:,3)>thresh_diff_mask)&(diff_mask_central(:,8)>thresh_diff_area);
 % moving_frame(:,2) = moving_frame(:,1);
-moving_frame(:,1) = ((abs(xShift)>2)|(abs(yShift)>2))>0;
+moving_frame(:,1) = (((abs(xShift)>4)|(abs(yShift)>4))>0)&(diff_mask_central(:,3)>1.5);
 moving_frame(:,2) = moving_frame(:,1);
 
 % reduce each peak to "single frame length"
@@ -284,8 +302,8 @@ match_mtx = zeros(20,40);
 min_match_mtx_elem = 1e10;
 min_fra_ind_match = [];
 for mm1 = 1:20;
-    for mm2 = 1:80;
-        [match_mtx(mm1, mm2),mov_fra_ind_match] = cal_match_score(csv_ind, mov_fra_ind, mm1, 0.8+0.005*mm2, diff_mask_central(:,7), diff_mask_central(:,3));
+    for mm2 = 1:40;
+        [match_mtx(mm1, mm2),mov_fra_ind_match] = cal_match_score(csv_ind, mov_fra_ind, mm1, 0.9+0.005*mm2, diff_mask_central(:,7), diff_mask_central(:,3));
         if match_mtx(mm1, mm2) < min_match_mtx_elem
             min_match_mtx_elem = match_mtx(mm1, mm2);
             min_fra_ind_match = mov_fra_ind_match;
@@ -295,7 +313,7 @@ for mm1 = 1:20;
     end
 end
 % calculate the orignal indexes
-min_fra_ind_match(:,5) = round((min_fra_ind_match(:,2)-csv_ind(1))/(0.8+0.005*mm2_min_ind)+mov_fra_ind(mm1_min_ind));
+min_fra_ind_match(:,5) = round((min_fra_ind_match(:,2)-csv_ind(1))/(0.9+0.005*mm2_min_ind)+mov_fra_ind(mm1_min_ind));
 
 %% refine aligment indexes
 
@@ -330,12 +348,13 @@ no_nonzero_csv_ind = length(csv_ind);
 % compensate the difference: shift impulse index to left 
 shift_to_left = zeros(no_nonzero_csv_ind+1,1);
 
+mask_ind = zeros(no_nonzero_csv_ind,2);
 % determine x mask index
 for ii = 1:no_nonzero_csv_ind;
     % debug purpose
-    if ii == 93
-        ii
-    end
+%     if ii == 93
+%         ii
+%     end
   
    ind_consider0 = round((min_fra_ind_match(ii,1)+min_fra_ind_match(ii,5))/2)-shift_to_left(ii);
    
@@ -386,29 +405,32 @@ for iin = 1: no_nonzero_csv_ind;
     end
     % compare two alignment results, if they are the same, then choose any
     % one of them
-   if min_fra_ind_match(iin,5) ==  min_fra_ind_match(iin,6)
+   if (min_fra_ind_match(iin,5) ==  min_fra_ind_match(iin,6)) | (iin == 1)
        min_fra_ind_match(iin,7) = min_fra_ind_match(iin,5);
    else
        % if two alignments are not the same, compare the shift in x,y axis,
        % in terms of 'shift of central of area' and 'result of cross
        % correlation', respectively. 
        
-       % magnitues of shift of area centre
+       % magnitudes of shift of area centre
        xy_sum_diffCentr_5 = sum(diff_mask_central(max(1,min_fra_ind_match(iin,5)-3):...
            min(diff_leng,min_fra_ind_match(iin,5)+3),1:2),1);
-       % magnitues of shift of area centre
+       % magnitudes of shift of area centre
        xy_sum_diffCentr_6 = sum(diff_mask_central(max(1,min_fra_ind_match(iin,6)-3):...
            min(diff_leng,min_fra_ind_match(iin,6)+3),1:2),1);
+       % magnitudes of the sum of crossCorrelation around each peak, for
+       % the 5th column of 'min_fra_ind_match'
        xy_sum_CrossCor_5 = [sum(xShift(max(1,min_fra_ind_match(iin,5)-3):...
            min(diff_leng,min_fra_ind_match(iin,5)+3))),...
            sum(yShift(max(1,min_fra_ind_match(iin,5)-3):...
            min(diff_leng,min_fra_ind_match(iin,5)+3)))];
+       % magnitudes of the sum of crossCorrelation around each peak, for the 6th column of 'min_fra_ind_match' 
        xy_sum_CrossCor_6 = [sum(xShift(max(1,min_fra_ind_match(iin,6)-3):...
            min(diff_leng,min_fra_ind_match(iin,6)+3))),...
            sum(yShift(max(1,min_fra_ind_match(iin,6)-3):...
            min(diff_leng,min_fra_ind_match(iin,6)+3)))];
        xy_csv = diff_mask_central(min_fra_ind_match(iin,1),5:6);
-       % estimate the error in terms of coll
+       % estimate the error in terms of col
        error_5 = sum(abs(xy_sum_diffCentr_5 - xy_csv)+abs(xy_sum_CrossCor_5 - xy_csv))...
            + shift_para*abs((min_fra_ind_match(iin,1)-min_fra_ind_match(iin-1,1))...
              -(min_fra_ind_match(iin,5)-min_fra_ind_match(iin-1,7)));
@@ -425,15 +447,17 @@ for iin = 1: no_nonzero_csv_ind;
        else
            back_ind = 1;
            min_fra_ind_match(iin,7) = min_fra_ind_match(iin,5);
+           % if there is a duplicated index, choose the 5th column as the
+           % result
            while length(unique(min_fra_ind_match(1:iin,7)))~=iin
                 min_fra_ind_match(iin-back_ind,7)=min_fra_ind_match(iin-back_ind,5);
+                % the backwards index, increase from 1, until no duplicated
+                % index exist in final index result vector
                 back_ind = back_ind+1;
            end
-           
-%            min_fra_ind_match(:,7) =  min_fra_ind_match(:,5);
-%            break;
        end
    end
+   
 end
 
 
@@ -446,7 +470,7 @@ mov_fra_ind_Noextend = mov_fra_ind( mm1_min_ind:end) ;
 
 mov_compare2 = zeros(diff_leng,1);
 
-mov_compare2(min_fra_ind_match(:,6)) = 35;
+mov_compare2(min_fra_ind_match(:,7)) = 35;
 figure, plot(diff_mask_central(:,7),'r-o');
 hold on , 
 plot(sqrt(mov_compare(:,1).^2+mov_compare(:,1).^2),'y-');
@@ -478,12 +502,141 @@ diff_mask_central(:,9) = stage_move_x;
 diff_mask_central(:,10) = stage_move_y;
 
 % save result
-temp_text_file = ['temp_text',num2str(nf),'.mat'];
-save(temp_text_file, 'stage_move_x', 'stage_move_y','hdf5_path');
+temp_text_file = [name,'_align.mat'];
+save([root,temp_text_file], 'nf','diff_mask_central', 'min_fra_ind_match','hdf5_path');
 
 mov_frame_compare = [diff_mask_central(:,1), xShift, diff_mask_central(:,5),...
     diff_mask_central(:,2), yShift, diff_mask_central(:,6)];
 % end
+
+%% show all skeletons
+
+% r
+skeleton_hdf5 = h5read([trajectories_folder,name,'_skeletons.hdf5'],'/skeleton');
+
+x_ske = (reshape(skeleton_hdf5(1,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
+y_ske = (reshape(skeleton_hdf5(2,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
+
+stage_mov_x_cum = cumsum(diff_mask_central(:,9));
+stage_mov_y_cum = cumsum(diff_mask_central(:,10));
+
+if size(x_ske,1) == length(stage_mov_x_cum)+1
+    x_ske_cum = x_ske(2:end,:) + stage_mov_x_cum*ones(1,size(x_ske,2));
+    y_ske_cum = y_ske(2:end,:) + stage_mov_y_cum*ones(1,size(y_ske,2));
+else
+    error('frame number size does not match');
+end
+
+show_fra_ind = round(size(x_ske_cum,1));
+half_x = 320;
+half_y = 240;
+
+x_ske_cum_adjusted = x_ske_cum - min(x_ske_cum(1:show_fra_ind))+half_x*2;
+y_ske_cum_adjusted = y_ske_cum - min(y_ske_cum(1:show_fra_ind))+half_y*2;
+
+fig63 = figure(63),plot(x_ske_cum_adjusted(1,:),y_ske_cum_adjusted(1,:) ); axis equal; hold on
+for tt_1 = 2:20:show_fra_ind;
+    plot(x_ske_cum_adjusted(tt_1,:),y_ske_cum_adjusted(tt_1,:) );
+end
+hold off,
+%% show and save as video
+
+% initialize current image
+curr_img = uint8(zeros(1800,1800));
+% half size of window in focus
+half_x = 320;
+half_y = 240;
+
+x_centr = -diff_mask_central(:,9);
+y_centr = -diff_mask_central(:,10);
+x_centr(1) = x_centr(1) + skeleton_hdf5(1,25, 1);
+y_centr(1) = y_centr(1) + skeleton_hdf5(2,25, 1);
+
+% x_centr_summ = round(cumsum(x_centr)*abs(x_pixel_per_microns));
+% y_centr_summ = round(cumsum(y_centr)*abs(y_pixel_per_microns));
+x_centr_summ = round(cumsum(x_centr));
+y_centr_summ = round(cumsum(y_centr));
+
+show_fra_ind = 1500;
+x_centr_summ_adjusted = x_centr_summ - min(x_centr_summ(1:show_fra_ind))+half_x*2;
+y_centr_summ_adjusted = y_centr_summ - min(y_centr_summ(1:show_fra_ind))+half_y*2;
+
+
+
+for ii = 1:show_fra_ind;
+    ii
+    mask_backadjust = mask(:,:,ii+1);
+    substitute_intensity = round(median(median(mask_backadjust(mask_backadjust>0)))*1.1);
+    mask_backadjust(mask_backadjust<1)=substitute_intensity;
+    
+    mask_backadjust(1:4,:) = 256;
+    mask_backadjust(end-3:end,:) = 256;
+    mask_backadjust(:,1:4) = 256;
+    mask_backadjust(:,end-3:end) = 256;
+    
+    curr_img = uint8(zeros(2048,2048));
+    curr_img((y_centr_summ_adjusted(ii)-half_y):(y_centr_summ_adjusted(ii)+half_y-1),...
+       (x_centr_summ_adjusted(ii)-half_x):(x_centr_summ_adjusted(ii)+half_x-1) ) = (mask_backadjust)'; 
+    curr_img = curr_img(1:4:end, 1:4:end);
+    curr_img(1:32:end,1:32:end)= 256;
+%     curr_img(2:16:end,1:16:end)= 256;
+%     curr_img(1:16:end,2:16:end)= 256;
+%     curr_img(2:16:end,2:16:end)= 256;
+    
+    figure(10+nf), imshow(curr_img); 
+    fps = 30;
+      mov(ii) = save_crt_fra(name,ii, fps);
+end
+
+fname = [trajectories_folder,name,'.avi' ];
+% movie2avi(mov, fname, 'compression', 'MSVC', 'fps', fps);
+
+myVideo = VideoWriter(fname);
+myVideo.Quality = 50;    % Default 75
+open(myVideo);
+writeVideo(myVideo, mov);
+close(myVideo);
+
+   good_ind = [good_ind, nf];
+   save('path2_good_ind.mat', 'good_ind');
+   %saveas(figure(1), 'testfig.fig');
+   savefig(fig63,[trajectories_folder,name,'-ske.fig']);
+   
+  clear 
+  load path2.mat
+  load path2_good_ind.mat 
+  
+%   
+catch
+    continue;
+end
+    
+
+
+% ske_traj_hdf5 = h5read([trajectories_folder,name,'_skeletons.hdf5'],'/trajectories_data');
+% 
+% ind_ii = 1;
+% figure(51),plot(skeleton_hdf5(1,:,ind_ii), skeleton_hdf5(2,:,ind_ii)); axis equal; hold on
+% for ind_ii = 101:100:size(skeleton_hdf5,3);
+%     plot(skeleton_hdf5(1,:, ind_ii), skeleton_hdf5(2,:, ind_ii)); axis equal; hold on
+% end
+% 
+% ind_ii = 1;
+% figure(52),plot(plate_worms.coord_x(ind_ii), skeleton_hdf5(2,:,ind_ii)); axis equal; hold on
+% for ind_ii = 101:100:size(skeleton_hdf5,3);
+%     plot(skeleton_hdf5(1,:, ind_ii), skeleton_hdf5(2,:, ind_ii)); axis equal; hold on
+% end
+% 
+% % xxx = skeleton_hdf5(1,25,1:10:end);
+% % yyy = skeleton_hdf5(2,25,1:10:end);
+% % figure(61),plot(reshape(xxx,size(xxx,3),1),reshape(yyy,size(yyy,3),1) ); axis equal;
+% 
+% cood_xx = ske_traj_hdf5.coord_x(1:10:end);
+% cood_yy = ske_traj_hdf5.coord_y(1:10:end);
+% figure(62),plot(cood_xx,cood_yy); axis equal;
+
+
+end
 
 
 %% test and draw
