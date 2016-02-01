@@ -17,23 +17,31 @@ ffmpeg = 'C:\FFMPEG\bin\ffmpeg';
 ffprobe = 'C:\FFMPEG\bin\ffprobe';
 
 % the root 
-root = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
-hdf_folder = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
-trajectories_folder = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\15-03-11\';
+root = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\24-02-11\';
+% hdf file (the video) folder
+hdf_folder = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\24-02-11\';
+% trajectories (hdf) folder
+trajectories_folder = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-8\Andre\24-02-11\';
 
 root_folder = genpath([root,'.']);
 
+% read all trajectories file
 traj_file=dir([trajectories_folder,'*_trajectories.hdf5']);
+% how many trajectories file in the folder
 num_file = size(traj_file,1);
 good_ind = [];
 
+% save file paths information
 save path2.mat
-for nf = 1: length(traj_file);
+
+% create a loop to process the files one after one
+for nf = 6: length(traj_file);
 %for nf = 1:length(traj_file);
 % choose index of file
 
- try
+% try
 
+% name of the trajectories (or avi, or hdf, or other) file 
 name  = traj_file(nf).name(1:end-18);
 excel_name = [name, '.log.csv'];
 hdf5_name = [name, '.hdf5'];
@@ -43,6 +51,10 @@ trajectories_file = [trajectories_folder,traj_file(nf).name];
 plate_worms = h5read(trajectories_file, '/plate_worms');
 timestamp = h5read(trajectories_file, '/timestamp/raw');
 timestamp_time = h5read(trajectories_file, '/timestamp/time');
+
+if timestamp_time(end)< 30
+   error('the video is too short, less than 30 seconds'); 
+end
 
 % import csv data
 %ss = importdata([root,excel_name]);
@@ -95,7 +107,12 @@ time_pos = h5read(hdf5_path,'/vid_time_pos');
 normalize_val = 1000;
 
 if frame_total ~= length(real_time_frame)
-    error('number of frames is equal to number of time stamp in tragactories');
+    txt_name = [trajectories_folder,name, '-error.txt'];
+    fid_txt = fopen(txt_name,'wt');
+    fprintf(fid_txt, 'number of frames is not equal to number of time stamp in tragactories: \n frame_total=%d \n length(real_time_frame)=%d',frame_total, length(real_time_frame));
+    fclose(fid_txt);
+    continue;
+    %error('number of frames is not equal to number of time stamp in tragactories');
 end
 
 mask_central = [plate_worms.coord_x,plate_worms.coord_y,real_time_frame];
@@ -278,9 +295,13 @@ moving_frame = zeros(diff_leng,2);
 % % identify moving frames: central moves >3 && areas change > threshold
 % moving_frame(:,1) = (diff_mask_central(:,3)>thresh_diff_mask)&(diff_mask_central(:,8)>thresh_diff_area);
 % moving_frame(:,2) = moving_frame(:,1);
-moving_frame(:,1) = (((abs(xShift)>4)|(abs(yShift)>4))>0)&(diff_mask_central(:,3)>1.5);
-moving_frame(:,2) = moving_frame(:,1);
-
+if size(strfind('name', 'swimming'),1)>0
+    moving_frame(:,1) = (diff_mask_central(:,3)>4.5);
+else
+    moving_frame(:,1) = (((abs(xShift)>4)|(abs(yShift)>4))>0)&(diff_mask_central(:,3)>1.5);
+end
+moving_frame(:,2) = moving_frame(:,1);        
+    
 % reduce each peak to "single frame length"
 for qq = 1: diff_leng-2;
     if moving_frame(qq,2) == 1
@@ -364,10 +385,16 @@ for ii = 1:no_nonzero_csv_ind;
     start_in_abs_diff0 = max(1,ind_consider0-half_filter);
     % consider the case when 'end_inabs_diff0' is larger than 'diff_leng'
     end_in_abs_diff0 = min(diff_leng,ind_consider0+half_filter);
-    % find the peak index with maximum weights, within the areas of 'positive/negtive areas are both large'
-    sum_abs_diff0_sec = sum(ind_consider0:end_in_abs_diff0+half_filter);
+    if start_in_abs_diff0 > end_in_abs_diff0
+        sum_abs_diff0_sec = sum(end_in_abs_diff0 :end_in_abs_diff0+half_filter);
+        ind_in_consider = end_in_abs_diff0:end_in_abs_diff0+half_filter;
+    else
+        % find the peak index with maximum weights, within the areas of 'positive/negtive areas are both large'
+        sum_abs_diff0_sec = sum(ind_consider0:end_in_abs_diff0+half_filter);
+        ind_in_consider = ind_consider0:end_in_abs_diff0+half_filter;
+    end
     
-    ind_in_consider = ind_consider0:end_in_abs_diff0+half_filter;
+    
     % use a guassian window to esitmate the best weights
     peak_weights0 = ones(length(ind_in_consider),1)*diff_mask_central(min_fra_ind_match(ii,1),5:6)-diff0(ind_in_consider,1:2).*(guass_window(round((filter_length-length(ind_in_consider))/2)+(1:length(ind_in_consider)))*ones(1,2));
     % debug use
@@ -397,10 +424,10 @@ align_extend_old = min_fra_ind_match(:,2);
 min_fra_ind_match(:,6) = sort(mask_ind(:,1));
 
 %% choose better result from 'min_fra_ind_match(:,5)' and 'min_fra_ind_match(:,9)'
-shift_para = 1;
+shift_para = 2;
 min_fra_ind_match(:,7) = zeros(size(min_fra_ind_match(:,6)));
 for iin = 1: no_nonzero_csv_ind;
-    if iin == 93
+    if iin == 95
         iin
     end
     % compare two alignment results, if they are the same, then choose any
@@ -477,6 +504,11 @@ plot(sqrt(mov_compare(:,1).^2+mov_compare(:,1).^2),'y-');
 plot(mov_compare2,'b-');
 plot (diff_mask_central(:,3),'g-');
 
+for pl_ii = 1: size(min_fra_ind_match,1);
+    hold on, plot([min_fra_ind_match(pl_ii,1),min_fra_ind_match(pl_ii,7)], [50,35],'m-');
+end
+hold off,
+
 stage_move_x = zeros(diff_leng,1);
 stage_move_y = zeros(diff_leng,1);
 
@@ -521,8 +553,8 @@ stage_mov_x_cum = cumsum(diff_mask_central(:,9));
 stage_mov_y_cum = cumsum(diff_mask_central(:,10));
 
 if size(x_ske,1) == length(stage_mov_x_cum)+1
-    x_ske_cum = x_ske(2:end,:) + stage_mov_x_cum*ones(1,size(x_ske,2));
-    y_ske_cum = y_ske(2:end,:) + stage_mov_y_cum*ones(1,size(y_ske,2));
+    x_ske_cum = x_ske(2:end,:) - stage_mov_x_cum*ones(1,size(x_ske,2));
+    y_ske_cum = y_ske(2:end,:) - stage_mov_y_cum*ones(1,size(y_ske,2));
 else
     error('frame number size does not match');
 end
@@ -542,7 +574,7 @@ hold off,
 %% show and save as video
 
 % initialize current image
-curr_img = uint8(zeros(1800,1800));
+curr_img = uint8(zeros(512,512));
 % half size of window in focus
 half_x = 320;
 half_y = 240;
@@ -558,44 +590,56 @@ x_centr_summ = round(cumsum(x_centr));
 y_centr_summ = round(cumsum(y_centr));
 
 show_fra_ind = 1500;
-x_centr_summ_adjusted = x_centr_summ - min(x_centr_summ(1:show_fra_ind))+half_x*2;
-y_centr_summ_adjusted = y_centr_summ - min(y_centr_summ(1:show_fra_ind))+half_y*2;
+x_centr_summ_adjusted = x_centr_summ - min(x_centr_summ(1:show_fra_ind))+half_x*1.3;
+y_centr_summ_adjusted = y_centr_summ - min(y_centr_summ(1:show_fra_ind))+half_y*1.3;
 
 
-
+ fps = 30;
 for ii = 1:show_fra_ind;
     ii
     mask_backadjust = mask(:,:,ii+1);
     substitute_intensity = round(median(median(mask_backadjust(mask_backadjust>0)))*1.1);
     mask_backadjust(mask_backadjust<1)=substitute_intensity;
     
-    mask_backadjust(1:4,:) = 256;
-    mask_backadjust(end-3:end,:) = 256;
-    mask_backadjust(:,1:4) = 256;
-    mask_backadjust(:,end-3:end) = 256;
+    mask_backadjust(1:5,:) = 256;
+    mask_backadjust(end-4:end,:) = 256;
+    mask_backadjust(:,1:5) = 256;
+    mask_backadjust(:,end-4:end) = 256;
     
-    curr_img = uint8(zeros(2048,2048));
-    curr_img((y_centr_summ_adjusted(ii)-half_y):(y_centr_summ_adjusted(ii)+half_y-1),...
-       (x_centr_summ_adjusted(ii)-half_x):(x_centr_summ_adjusted(ii)+half_x-1) ) = (mask_backadjust)'; 
-    curr_img = curr_img(1:4:end, 1:4:end);
+    curr_img = uint8(zeros(512,512));
+    %curr_img = uint8(zeros(1900,1900));
+    curr_img(round(((y_centr_summ_adjusted(ii)-half_y):4:(y_centr_summ_adjusted(ii)+half_y-1))/4),...
+       round(((x_centr_summ_adjusted(ii)-half_x):4:(x_centr_summ_adjusted(ii)+half_x-1))/4) ) = (mask_backadjust(1:4:end, 1:4:end))'; 
+    % curr_img = curr_img(1:4:end, 1:4:end);
     curr_img(1:32:end,1:32:end)= 256;
 %     curr_img(2:16:end,1:16:end)= 256;
 %     curr_img(1:16:end,2:16:end)= 256;
 %     curr_img(2:16:end,2:16:end)= 256;
-    
     figure(10+nf), imshow(curr_img); 
-    fps = 30;
+   
       mov(ii) = save_crt_fra(name,ii, fps);
 end
 
 fname = [trajectories_folder,name,'.avi' ];
 % movie2avi(mov, fname, 'compression', 'MSVC', 'fps', fps);
 
+for fra_num2 = 2:size(mov,2);
+   if size(mov(fra_num2).cdata)~= size(mov(1).cdata) 
+           txt_name = [trajectories_folder,name, '-error.txt'];
+            fid_txt = fopen(txt_name,'wt');
+            fprintf(fid_txt, 'MOV size is not uniform: \n mov(%d).cdata=%d ',fra_num2, size(mov(fra_num2).cdata));
+            fclose(fid_txt);
+    continue;
+   end
+end
+
 myVideo = VideoWriter(fname);
 myVideo.Quality = 50;    % Default 75
 open(myVideo);
 writeVideo(myVideo, mov);
 close(myVideo);
+
+figure(80), plot(min_fra_ind_match(:,7)-min_fra_ind_match(:,1),'r-');
 
    good_ind = [good_ind, nf];
    save('path2_good_ind.mat', 'good_ind');
@@ -606,11 +650,11 @@ close(myVideo);
   load path2.mat
   load path2_good_ind.mat 
   
-%   
-catch
-    continue;
-end
-    
+  
+% catch
+%     continue;
+% end
+%     
 
 
 % ske_traj_hdf5 = h5read([trajectories_folder,name,'_skeletons.hdf5'],'/trajectories_data');
