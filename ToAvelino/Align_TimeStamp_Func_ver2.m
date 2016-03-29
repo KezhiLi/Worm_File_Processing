@@ -1,259 +1,86 @@
-function [stage_vec,pixel_to_micro] = Align_TimeStamp_Func(name,trajectories_folder,trajectories_file,hdf5_path,ske_file,xml_file,csv_file,features_mat)
-%% TRAJECTORIES DATA FILE
+function [stage_vec, pixel_to_micro] = Align_TimeStamp_Func_ver2(masked_image_file, skeletons_file, is_swimming)
+%% read pixels per microns attribute. This info was extracted from the info.xml file
+x_pixel_per_microns = 1/h5readatt(masked_image_file, '/mask', 'pixels2microns_x');
+y_pixel_per_microns = 1/h5readatt(masked_image_file, '/mask', 'pixels2microns_y');
 
-% read info from tracjectories
-plate_worms = h5read(trajectories_file, '/plate_worms');
-timestamp = h5read(trajectories_file, '/timestamp/raw');
-timestamp_time = h5read(trajectories_file, '/timestamp/time');
+%% read stage data from the mask hdf5 file. This information was extracted
+%from the .log.csv file 
+stage_data = h5read(masked_image_file, '/stage_data');
+%correct for duplicated data keeping the last instance of a given time
+[stage_time, ind] = unique(stage_data.stage_time, 'last');
+stage_time = stage_time*60; %Convert the time in seconds. It was originally in minutes.
+stage_xy = [stage_data.stage_x(ind) , stage_data.stage_y(ind)];
 
+
+%% the centroid position and real time frame it's better stored in the skeletons_file
+
+video_timestamp_ind = h5read(skeletons_file, '/timestamp/raw');
+video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
+trajectories_data = h5read(skeletons_file, '/trajectories_data');
+
+%At this point after the skeletons analysis there should be only one valid
+%index.
+assert(all(trajectories_data.worm_index_joined==1))
+
+real_time_frame = trajectories_data.timestamp_time;
+mask_central = [trajectories_data.cnt_coord_x, trajectories_data.cnt_coord_y, real_time_frame];
+
+%% test the timestamp make sense
 % if the video is too short, report it and jump to next video
-if timestamp_time(end)< 15
-    txt_name = [trajectories_folder,name, '-error.txt'];
-    fid_txt = fopen(txt_name,'wt');
-    fprintf(fid_txt, 'the video is too short, less than 15 seconds: \n timestamp_time(end)=%d ',timestamp_time(end));
-    fclose(fid_txt);
-    %error('the video is too short, less than 15 seconds');
+if real_time_frame(end)< 15
+    error('the video is too short, less than 15 seconds: \n timestamp_time(end)=%d ',video_timestamp_time(end));
 end
 
-% if timestamp_time is not in ascending order, or value is too
-% large (>12 hours)
-if max(timestamp_time)> 5e4 || ~issorted(timestamp_time)
-    txt_name = [trajectories_folder,name, '-error.txt'];
-    fid_txt = fopen(txt_name,'wt');
-    if max(timestamp_time)> 5e4
-        fprintf(fid_txt, 'max(timestamp_time): \n =%d ',max(timestamp_time));
-    elseif ~issorted(timestamp_time)
-        fprintf(fid_txt, 'time stamp is not in an ascending order');
-    end
-    fclose(fid_txt);
-    %error('the video is too short, less than 15 seconds');
-end
 
-%%
-% import csv data
-ss = read_csv_data(csv_file);
+%% calculate shift from cross correlation between frames, and get the absolute difference between images
+[xShift, yShift, abs_diff_fra] = shiftCrossCorrelation(masked_image_file);
 
-% read csv data: real time, media time, and stage coordinates xy
-real_time = ss.textdata_unique(2:end,1);
-media_time = ss.textdata_unique(2:end,2);
-stage_xy = ss.data_unique;
-
-% check if number of rows in csv is equal to number of frames
-data_rows_unique = size(ss.data_unique,1);
-if size(ss.data,1)+1 ~= size(ss.textdata,1);
-    txt_name = [trajectories_folder,name, '-error.txt'];
-    fid_txt = fopen(txt_name,'wt');
-    fprintf(fid_txt, 'excel file problem: number of rows are not in uniform: \n data_rows+1=%d \n size(ss.textdata,1)=%d',data_rows+1, size(ss.textdata,1));
-    fclose(fid_txt);
-    %error('excel file problem: number of rows are not in uniform')
-end
-
-% convert time to seconds value
-if isa(media_time,'double')
-    media_time_vec = media_time;
-else
-    % convert time from text to number
-    media_time_vec = size(media_time);
-    for ii = 1:data_rows_unique;
-        str1 = media_time(ii);
-        t1 = datevec(str1);
-        media_time_vec(ii) = t1(4)*3600 + t1(5)*60 + t1(6);
-    end
-end
-%%
-% calculate the real time according to trajactories
-real_frame = timestamp(plate_worms.frame_number+1); %will match the indexes of segworm. Add one because the python indexing.
-% read good frames indexes from 'plate_worms.frame_number'
-good_fra_ind = plate_worms.worm_index_joined==1;
-%
-real_time_frame = timestamp_time(plate_worms.frame_number(good_fra_ind)+1);
-
-
-%% read key data
-% mask information
-mask_info = h5info(hdf5_path, '/mask');
-% mask matrix, 3 dimentions
-%mask = h5read(hdf5_path, '/mask');
-% size of each frame
-frame_size = mask_info.Dataspace.Size(1:2);
-frame_total = mask_info.Dataspace.Size(3);
-frame_pos = h5read(hdf5_path,'/vid_frame_pos'); % start from 0
-time_pos = h5read(hdf5_path,'/vid_time_pos');
-%normalize_val = 1000;
-
-if frame_total ~= length(real_time_frame)
-    txt_name = [trajectories_folder,name, '-error.txt'];
-    fid_txt = fopen(txt_name,'wt');
-    fprintf(fid_txt, 'number of frames is not equal to number of time stamp in tragactories: \n frame_total=%d \n length(real_time_frame)=%d',frame_total, length(real_time_frame));
-    fclose(fid_txt);
-    %error('number of frames is not equal to number of time stamp in tragactories');
-end
-
-mask_central = [plate_worms.coord_x(good_fra_ind),plate_worms.coord_y(good_fra_ind),real_time_frame];
-
-%% calculate shift from cross correlatoin
-% set parameters
-timeDiff = 1; % how many frames between aligned images?
-dS = 4; % pixel downsampling factor (2 means half size)
-
-%% estimate transformation from one image frame to another
-No_mask = frame_total; %size(mask, 3);
-xShift = NaN(No_mask-timeDiff, 1);
-yShift = NaN(No_mask-timeDiff, 1);
-
-mask_no_limit = 3e4;
-% if the number of frames is too large
-split_mask = ceil(No_mask/mask_no_limit);
-if split_mask<=1
-    mask = h5read(hdf5_path, '/mask');
-else
-    pp_no = 1;
-    mask = h5read(hdf5_path, '/mask', [1,1,1] , [frame_size(1),frame_size(2),mask_no_limit] );
-end
-
-abs_diff_fra = zeros(No_mask-timeDiff,1);
-for ii = 1+timeDiff:No_mask
-    % show the processing percentage
-    disp(ii/No_mask)
-    
-    if split_mask<=1
-        frame_bef  = mask(1:dS:end,1:dS:end,ii);
-        frame_aft = mask(1:dS:end,1:dS:end,ii-timeDiff);
-    else
-        pp1 = ceil(ii/mask_no_limit);
-        pp2 = ii-(ceil(ii/mask_no_limit)-1)*mask_no_limit;
-        pp3 = ceil((ii-timeDiff)/mask_no_limit);
-        pp4 = (ii-timeDiff)-(ceil((ii-timeDiff)/mask_no_limit)-1)*mask_no_limit;
-        if pp3 == pp_no
-            frame_aft  = mask(1:dS:end,1:dS:end,pp4);
-        else
-            mask = h5read(hdf5_path, '/mask', [1,1,(pp3-1)*mask_no_limit+1] , [frame_size(1),frame_size(2),mask_no_limit] );
-            pp_no = pp3;
-            frame_aft  = mask(1:dS:end,1:dS:end,pp4);
-        end
-        if pp1 == pp_no
-            frame_bef  = mask(1:dS:end,1:dS:end,pp2);
-        else
-            if pp1 < split_mask
-                mask = h5read(hdf5_path, '/mask', [1,1,(pp1-1)*mask_no_limit+1] , [frame_size(1),frame_size(2),mask_no_limit] );
-            else
-                mask = h5read(hdf5_path, '/mask', [1,1,(pp1-1)*mask_no_limit+1] , [frame_size(1),frame_size(2),No_mask-(pp1-1)*mask_no_limit] );
-            end
-            pp_no = pp1;
-            frame_bef  = mask(1:dS:end,1:dS:end,pp2);
-        end
-    end
-    
-    
-    % use sum to find the worms in 2 frame, and the background of value 0
-    frame_sum = abs(frame_bef)+abs(frame_aft)>0;
-    frm_sum_col = sum(frame_sum,1);
-    frm_sum_row = sum(frame_sum,2);
-    
-    % find the joint worm body
-    worm_ind_col = find(frm_sum_col>0);
-    worm_ind_row = find(frm_sum_row>0);
-    
-    % the pixel buffer round the worm body area
-    pix_buffer = 5;
-    
-    % create a square of pixels that cover the worm body, only
-    % focus on the change pixles to speed up the calculation
-    frame_bef = frame_bef(max(1,worm_ind_row(1)-pix_buffer)...
-        :min(length(frm_sum_row),worm_ind_row(end)+pix_buffer),...
-        max(1,worm_ind_col(1)-pix_buffer)...
-        :min(length(frm_sum_col),worm_ind_col(end)+pix_buffer));
-    frame_aft = frame_aft(max(1,worm_ind_row(1)-pix_buffer)...
-        :min(length(frm_sum_row),worm_ind_row(end)+pix_buffer),...
-        max(1,worm_ind_col(1)-pix_buffer)...
-        :min(length(frm_sum_col),worm_ind_col(end)+pix_buffer));
-    
-    % estimate shift between images
-    transMat = imregcorr(frame_bef , ...
-        frame_aft  , 'translation');
-    
-    % calculate the absolute difference between frames
-    abs_diff_fra(ii-timeDiff) = sum(sum(abs( frame_bef - frame_aft)));
-    
-    % calculate the shift in x,y directions
-    xShift(ii - timeDiff) = transMat.T(3, 1)*dS;
-    yShift(ii - timeDiff) = transMat.T(3, 2)*dS;
-    
-    % switch and reverse the xShift and yShift, due to the transform
-    % between space coodinates and matrix presentation
-    xShift_temp = xShift;
-    xShift = -yShift;
-    yShift = -xShift_temp;
-    
-end
-%% pixel differences
+%% get possible peaks from the pixel differences
 % threshold(otsu) and trim 'abs_diff_fra' to make it good for tell the peaks
-abs_diff_fra_thres1 = abs_diff_fra;
-abs_diff_fra_thres1(abs_diff_fra<(graythresh(abs_diff_fra/max(abs_diff_fra))*max(abs_diff_fra))*0.8)=0;   % *0.8 to have a loose threshold
-abs_diff_fra_trim = imerode(abs_diff_fra_thres1,[1;1;1]);
+max_abs_diff = max(abs_diff_fra);
+thresh = (graythresh(abs_diff_fra/max_abs_diff)*max_abs_diff)*0.8; % *0.8 to have a loose threshold
+
+abs_diff_fra_th = abs_diff_fra;
+abs_diff_fra_th(abs_diff_fra<thresh) = 0;   
+abs_diff_fra_trim = imerode(abs_diff_fra_th, [1;1;1]);
 
 %% main matrix used in alignment
-% calculate the difference of the central of the mask
-diff_mask_central = mask_central(2:end,1:2) - mask_central(1:end-1,1:2);
+diff_mask_central = zeros(size(mask_central,1)-1, 8);
+
+% column 1  and 2 is the difference of the central of the mask in x and y
+diff_mask_central(:, 1:2) = mask_central(2:end,1:2) - mask_central(1:end-1,1:2);
 % delete outliers
 diff_mask_central(abs(diff_mask_central(:,1))>34,1) = 0;
 diff_mask_central(abs(diff_mask_central(:,2))>34,2) = 0;
 
-% column 3 is the absolute shift distance considering both x,y direcition
+% column 3 is the 2-norm shift distance considering both x,y direction
 diff_mask_central(:,3) = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
-%diff_mask_central(:,4) = mask_central(2:end,3)/mask_central(end,3)*14.999*60;
+
+%column 4 is the vdeio timestamp
 diff_mask_central(:,4) = mask_central(2:end,3);
 
 %% read stage moving information and save it in 'diff_mask_central(:,5,6)' according to time stamps in 'diff_mask_central(:,4)'
-% rescale 'media_time_vec' when last stage motion is out of time scale
-if media_time_vec(end)>  timestamp_time(end)
-    % rescale it to timestamp_time(end) and keep 4 digits after point
-    media_time_vec_adj = round(media_time_vec/(media_time_vec(end)+0.1)*timestamp_time(end),3);
+% rescale 'stage_time' when last stage motion is out of time scale
+if stage_time(end)>  video_timestamp_time(end)
+    % rescale stage_time to timestamp_time(end) and keep 4 digits after point
+    stage_time_adj = round(stage_time/(stage_time(end)+0.1)*video_timestamp_time(end),3);
 else
-    media_time_vec_adj = media_time_vec;
+    stage_time_adj = stage_time;
 end
 
 % insert the stage motion according to time
 pt = 2;
-for ii = 1:frame_total-1;
+for ii = 1:size(diff_mask_central,1);
     disp(ii)
     % insert the stage motion in the right time
-    if (pt <= data_rows_unique) && (media_time_vec_adj(pt)<diff_mask_central(ii,4))
+    if (pt <= numel(stage_time)) && (stage_time_adj(pt)<diff_mask_central(ii,4))
         % estimate the stage motion in cvs
-        diff_mask_central(ii,5:1:6) = stage_xy(pt,:)- stage_xy(pt-1,:);
+        diff_mask_central(ii,5:6) = stage_xy(pt,:)- stage_xy(pt-1,:);
         % find next shift
         pt = pt + 1;
     end
 end
 num_pt = pt;
-
-%% read pixels per microns from xml files
-for qq = 1:2;
-    if qq == 1
-        findLabel1 = 'microns';
-    elseif qq == 2
-        findLabel1 = 'pixels';
-    end
-    
-    xDoc1 = xmlread(xml_file);
-    allListitems1 = xDoc1.getElementsByTagName(findLabel1);
-    
-    thisListitem1 = allListitems1.item(0);
-    
-    thisList1 = thisListitem1.getElementsByTagName('x');
-    thisElement1 = thisList1.item(0);
-    thisList2 = thisListitem1.getElementsByTagName('y');
-    thisElement2 = thisList2.item(0);
-    if qq == 1
-        x_microns = str2num(thisElement1.getFirstChild.getData);
-        y_microns = str2num(thisElement2.getFirstChild.getData);
-    elseif qq ==2
-        x_pixels = str2num(thisElement1.getFirstChild.getData);
-        y_pixels = str2num(thisElement2.getFirstChild.getData);
-    end
-end
-x_pixel_per_microns = x_pixels/x_microns;
-y_pixel_per_microns = y_pixels/y_microns;
 
 %% normalize shift distance
 
@@ -263,44 +90,43 @@ diff_mask_central(:,5) = diff_mask_central(:,5)/x_pixel_per_microns;
 diff_mask_central(:,6) = diff_mask_central(:,6)/y_pixel_per_microns;
 diff_mask_central(:,7) = sqrt(diff_mask_central(:,5).^2+diff_mask_central(:,6).^2);
 
-if size(timestamp,1)-1~=size(diff_mask_central,1)
+if size(video_timestamp_ind,1)-1~=size(diff_mask_central,1)
     error('time stamp frame number error');
 end
-diff_mask_central(:,8) = timestamp(2:end);
+diff_mask_central(:,8) = video_timestamp_ind(2:end);
 
 % fix the missing frames as 0
-diff_mask_central_full = zeros(timestamp(end),size(diff_mask_central,2));
-exist_ind = timestamp(2:end);
+diff_mask_central_full = zeros(video_timestamp_ind(end),size(diff_mask_central,2));
+exist_ind = video_timestamp_ind(2:end);
 curr_ind1 = 1;
 for ii = 1: size(diff_mask_central_full,1);
     if ii == exist_ind(curr_ind1)
         diff_mask_central_full(ii,:) = diff_mask_central(curr_ind1,:);
         curr_ind1 = curr_ind1 +1;
     else
-        diff_mask_central_full(ii,:) = [1e-5,1e-5,1e-5,1e-5,zeros(1,size(diff_mask_central_full,2)-4)];
+        diff_mask_central_full(ii,:) = zeros(1,size(diff_mask_central_full,2));
+        diff_mask_central_full(ii,1:4) = 1e-5;
     end
 end
 
 
+%{
 % tell if any motion in csv is too large
 if frame_total ~= length(real_time_frame)
     csv_large_ind = find(diff_mask_central(:,7)>80);
-    txt_name = [trajectories_folder,name, '-error.txt'];
-    fid_txt = fopen(txt_name,'wt');
-    fprintf(fid_txt, 'some indexes in csv has larger magnitude, eg: \n %d=%d, etc.',csv_large_ind(1), diff_mask_central(csv_large_ind(1),7));
-    fclose(fid_txt);
-    %error('number of frames is not equal to number of time stamp in tragactories');
+    error('some indexes in csv has larger magnitude, eg: \n %d=%d, etc.',csv_large_ind(1), diff_mask_central(csv_large_ind(1),7));
 end
+%}
 
 %% build a match/alignment between peaks of csv and WormShift
-diff_leng = size(diff_mask_central,1),
+diff_leng = size(diff_mask_central,1);
 moving_frame = zeros(diff_leng,4);
 
 % this if is VERY IMPORTANT, you can adjust threshold parameters here
 % if it is swimming video, moving frames are only the ones with
 % large center shift
 
-if size(strfind(name, 'swimming'),1)>0
+if is_swimming>0
     moving_frame(:,1) = (diff_mask_central(:,3)>4.5);
 else
     % if it is an 'on food' video, moving frames are ones with
@@ -322,20 +148,23 @@ curr_motion_len = 0;
 for qq = 2: diff_leng;
     if moving_frame(qq, 1) == 1
         curr_motion_len = curr_motion_len +1;
-    elseif moving_frame(qq, 1) == 0 & moving_frame(qq-1, 1) == 1
-        motion_len(min(10,curr_motion_len))=motion_len(min(10,curr_motion_len))+1;
+    elseif moving_frame(qq, 1) == 0 && moving_frame(qq-1, 1) == 1
+        bot = min(10,curr_motion_len);
+        motion_len(bot) = motion_len(bot)+1;
         curr_motion_len = 0;
     end
 end
-ave_motion_len = round(motion_len'*([1:10])'/sum( motion_len));
+ave_motion_len = round(motion_len'*(1:10)'/sum( motion_len));
 % reduce each peak to "single frame length"
 for qq = 1: diff_leng-2;
     %                 % debug use
     %                 if qq == 42841
     %                     qq
     %                 end
-    if moving_frame(qq, 1) == 1 & sum(moving_frame(max(qq-ave_motion_len,1):max(qq-1,1),2)) ==0 & moving_frame(qq, 2) == 0
-        if moving_frame(qq+1:qq+2,1)==[0;0]
+    bot = max(qq-ave_motion_len,1);
+    top = max(qq-1,1);
+    if moving_frame(qq, 1) == 1 && sum(moving_frame(bot:top,2)) ==0 && moving_frame(qq, 2) == 0
+        if all(moving_frame(qq+1:qq+2,1)==[0;0])
             moving_frame(qq, 2) = 1;
             %                     elseif moving_frame(qq+1:qq+3,1)==[1;1;1]
             %                         moving_frame(qq, 2) = 0;
@@ -389,7 +218,13 @@ filter_length = 71;
 % half of the window size
 half_filter = (filter_length-1)/2 ;
 % generate the gausssian window vector
-guass_window = gausswin(filter_length);
+
+
+%code of gausswin, otherwise one requires the signal processing toolbox. guass_window = gausswin(filter_length);
+L = filter_length; a = 2.5;
+N = L-1;
+n = (0:N)'-N/2;
+guass_window = exp(-(1/2)*(a*n/(N/2)).^2);
 
 % parameters to calculate the 'shift_to_left'
 shift_weights = exp(-2.4:0.6:0)';
@@ -481,7 +316,7 @@ for iin = 1: no_nonzero_csv_ind;
     end
     % compare two alignment results, if they are the same, then choose any
     % one of them
-    if (min_fra_ind_match(iin,5) ==  min_fra_ind_match(iin,6)) | (iin == 1)
+    if (min_fra_ind_match(iin,5) ==  min_fra_ind_match(iin,6)) || (iin == 1)
         min_fra_ind_match(iin,7) = min_fra_ind_match(iin,6);
     else
         % if two alignments are not the same, compare the shift in x,y axis,
@@ -520,17 +355,17 @@ for iin = 1: no_nonzero_csv_ind;
         
         % select the alignment result with smaller x,y shift errors and
         % non-repeated indexes.
-        if (error_5 <= error_6) & ~any(abs(min_fra_ind_match(1:iin,7)-min_fra_ind_match(iin,5))<1e-5)
+        if (error_5 <= error_6) && ~any(abs(min_fra_ind_match(1:iin,7)-min_fra_ind_match(iin,5))<1e-5)
             min_fra_ind_match(iin,7) = min_fra_ind_match(iin,5);
-        elseif (error_6 < error_5) & ~any(abs(min_fra_ind_match(1:iin,7)-min_fra_ind_match(iin,6))<1e-5)
+        elseif (error_6 < error_5) && ~any(abs(min_fra_ind_match(1:iin,7)-min_fra_ind_match(iin,6))<1e-5)
             min_fra_ind_match(iin,7) = min_fra_ind_match(iin,6);
         else
             back_ind = 1;
             min_fra_ind_match(iin,7) = min_fra_ind_match(iin,5);
             % if there is a duplicated index, choose the 5th column as the
             % result
-            while length(unique(min_fra_ind_match(1:iin,7)))~=iin
-                min_fra_ind_match(iin-back_ind,7)=min_fra_ind_match(iin-back_ind,5);
+            while length(unique(min_fra_ind_match(1:iin,7)))~=iin && iin-back_ind > 0
+                min_fra_ind_match(bot,7)=min_fra_ind_match(bot,5);
                 % the backwards index, increase from 1, until no duplicated
                 % index exist in final index result vector
                 back_ind = back_ind+1;
@@ -568,14 +403,8 @@ diff_mask_central(:,9) = stage_move_x;
 diff_mask_central(:,10) = stage_move_y;
 % end
 
+
 %% show all skeletons
-
-% read skeleton
-skeleton_hdf5 = h5read(ske_file,'/skeleton');
-
-x_ske = (reshape(skeleton_hdf5(1,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
-y_ske = (reshape(skeleton_hdf5(2,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
-
 % location of stage
 loc_stage = zeros(size(diff_mask_central,1),2);
 loc_stage(min_fra_ind_match(:,7),1:2) = diff_mask_central(min_fra_ind_match(:,1),5:6);
@@ -617,37 +446,33 @@ for repeat_i =1:3;   % repeat this process twice
         end
     end
 end
+%%
 cancel_fra_ind2 = find(moving_frame(:,4) ==1);
-
-
-if size(x_ske,1) == length(stage_mov_x_cum)+1
-    % calculate skeleton coordindates after considering the stage moving
-    x_ske_cum = x_ske;
-    y_ske_cum = y_ske;
-    x_ske_cum(2:end,:) = x_ske(2:end,:) - stage_mov_x_cum*ones(1,size(x_ske,2));
-    y_ske_cum(2:end,:) = y_ske(2:end,:) - stage_mov_y_cum*ones(1,size(y_ske,2));
-    cancel_fra_ind = cancel_fra_ind2+1;
-    x_ske_cum(cancel_fra_ind,:) = NaN;
-    y_ske_cum(cancel_fra_ind,:) = NaN;
+cancel_fra_ind = cancel_fra_ind2+1;
     
-        
-        % estimate the complementary indexes
-        left_fra_ind = setdiff([1:size(x_ske_cum,1)], cancel_fra_ind);
-    %                 % obtain new skeleton without frames during stage moving
-    %                 x_ske_cum = x_ske_cum(left_fra_ind,:);
-    %                 y_ske_cum = y_ske_cum(left_fra_ind,:);
-else
-    error('frame number size does not match');
-end
-
 stage_motion_x = [stage_mov_x_cum(1);stage_mov_x_cum];
 stage_motion_y = [stage_mov_y_cum(1);stage_mov_y_cum];
 stage_motion_x(cancel_fra_ind) = NaN;
 stage_motion_y(cancel_fra_ind) = NaN;
-stage_vec = [stage_motion_x,stage_motion_y];
+stage_vec = [stage_motion_x';stage_motion_y'];
 
-pixel_to_micro = [-x_pixel_per_microns,-y_pixel_per_microns];
+pixel_to_micro = [-(x_pixel_per_microns), -(y_pixel_per_microns)];
 
+%%save stage vector
+fid = H5F.open(skeletons_file,'H5F_ACC_RDWR','H5P_DEFAULT');
+if H5L.exists(fid,'stage_vec','H5P_DEFAULT')
+    H5L.delete(fid,'stage_vec','H5P_DEFAULT');
+end
+H5F.close(fid);
+h5create(skeletons_file, '/stage_vec', size(stage_vec), 'Datatype', 'double', ...
+'Chunksize', size(stage_vec), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
+h5write(skeletons_file, '/stage_vec', stage_vec);
+
+
+pixels2microns_x = h5readatt(masked_image_file, '/mask', 'pixels2microns_x');
+pixels2microns_y = h5readatt(masked_image_file, '/mask', 'pixels2microns_y');
+h5writeatt(skeletons_file, '/trajectories_data', 'pixels2microns_x', pixels2microns_x);
+h5writeatt(skeletons_file, '/trajectories_data', 'pixels2microns_y', pixels2microns_y);
 
 %% save the stage motion vector
 % stage_vec_save = [trajectories_folder,name,'_stage_vec.mat'];
