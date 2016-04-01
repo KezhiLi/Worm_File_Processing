@@ -16,7 +16,8 @@ worm_skeleton_y2 = worm.posture.skeleton.y(:,Nan2_ind);
 tt_step = 15;
 
 %%%%%%
-left_fra_sta_ind = diff_mask_central(cancel_fra_ind2,8)+1;
+%left_fra_sta_ind = diff_mask_central(cancel_fra_ind2,8)+1;
+left_fra_sta_ind = diff_mask_central(left_fra_ind-1,8)+1;
 
 x_ske_cum_left = x_ske_cum(left_fra_ind,:)*(-x_pixel_per_microns);  % x_ske_cum
 y_ske_cum_left = y_ske_cum(left_fra_ind,:)*(-y_pixel_per_microns);  % y_ske_cum
