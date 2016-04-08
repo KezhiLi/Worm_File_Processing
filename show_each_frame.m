@@ -1,4 +1,5 @@
 
+clear
 clc
 
 temp_text_file = ['temp_text',num2str(nf),'.mat'];

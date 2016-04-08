@@ -1,96 +1,25 @@
 clear
 clc
 
+%% function input parameters
+
+%%Input: 
+name = 'egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7';
+trajectories_folder = 'Z:\Results_old\nas207-3\Data\from pc207-13\Laura\20-07-10\4\';
+trajectories_file = [trajectories_folder,'egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7_trajectories.hdf5'];
+hdf5_path ='Z:\MaskedVideos_old\nas207-3\Data\from pc207-13\Laura\20-07-10\4\egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7.hdf5';
+ske_file ='Z:\Results_old\nas207-3\Data\from pc207-13\Laura\20-07-10\4\egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7_skeletons.hdf5';
+xml_file = 'Z:\thecus\nas207-3\Data\from pc207-13\Laura\20-07-10\4\.data\egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7.info.xml';
+csv_file ='Z:\thecus\nas207-3\Data\from pc207-13\Laura\20-07-10\4\.data\egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7.log.csv';
+
+features_mat ='N:\Andre\results-12-05-10\Laura Grundy\egl-23\n601\MT1231\on_food\XX\30m_wait\L\tracker_1\2010-07-20___12_24_56\egl-23 (n601)IV on food R_2010_07_20__12_24_56___1___7_features.mat';
+
+%% Outout
+
+
 %% TRAJECTORIES DATA FILE
 
-% the index of file in consideration
-nf = 1; % 1
-
-% current path_seg
-path_seg = 'nas207-3\Data\';
-% the hdf5/csv/xml file folder
-% path2 = 'C:\Kezhi\MyCode!!!\ManualVideos\Check_Align_samples\';
-path2 = 'C:\Kezhi\MyCode!!!\ManualVideos\';
-path3 = ['Z:\MaskedVideos_old\',path_seg];
-path4 = ['Z:\MaskedVideos_old\nas207-1\'];
-
-% make all subfolder available
-addpath(genpath([path2,'.']));
-addpath(genpath([path3,'.']));
-addpath(genpath([path4,'.']));
-
-ffmpeg = 'C:\FFMPEG\bin\ffmpeg';
-ffprobe = 'C:\FFMPEG\bin\ffprobe';
-
-name_temp = 'acr-10 (ok3064)I on food R_2010_02_24__11_43_53___2___8';
-%name_temp = 'egl-17 (e1313)X on food R_2010_07_09__11_43_13___2___4';
-path3_ind = which([name_temp,'.hdf5']);
-
-if isempty(path3_ind)
-    error('no such a .hdf file found')
-end
-
-% main folders
-% maindir_thecus = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
-% maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
-% maindir_Results = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
-% maindir_thecus = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
-% maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
-% maindir_Results = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
-% maindir_thecus = 'Z:\thecus\nas207-3\Data\from pc207-8\Laura\';
-% maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-3\Data\from pc207-8\Laura\';
-% maindir_Results = 'Z:\Results\nas207-3\Data\from pc207-8\Laura\';
-
-
-maindir_MaskedVideos = path3_ind(1:(length(path3_ind)-length(name_temp)-5));
-maindir_thecus = ['Z:\thecus\',maindir_MaskedVideos(21:end)];
-maindir_Results = ['Z:\Results_old\',maindir_MaskedVideos(21:end)];
-
-% read all sub-folders
-subdir  = dir(maindir_MaskedVideos);
-
-%% the loop goes through all sub-folders
-
-%% in subfolder
-root = maindir_thecus;
-% hdf file (the video) folder
-hdf_folder = maindir_MaskedVideos;
-% trajectories (hdf) folder
-trajectories_folder = maindir_Results;
-
-root_folder = genpath([root,'.']);
-
-% read all trajectories file
-traj_file=dir([trajectories_folder,'*_trajectories.hdf5']);
-% how many trajectories file in the folder
-num_file = size(traj_file,1);
-
-% save file paths information
-save path2.mat
-
-% create a loop to process the files one after one
-% for nf = 1: 1 %length(traj_file);
-%for nf = 1:length(traj_file);
-% choose index of file
-
-%     try
-
-% name of the trajectories (or avi, or hdf, or other) file
-%name  = traj_file(nf).name(1:end-18);
-name = name_temp;
-excel_name = [name, '.log.csv'];
-hdf5_name = [name, '.hdf5'];
-
-% hdf5 file path
-hdf5_path = [hdf_folder,hdf5_name];
-
-% if it is a swimming file, go to next file
-if size(strfind(name, 'swimming'),1)>0
-    continue;
-end
-
 % read info from tracjectories
-trajectories_file = [trajectories_folder,name, '_trajectories.hdf5'];
 plate_worms = h5read(trajectories_file, '/plate_worms');
 timestamp = h5read(trajectories_file, '/timestamp/raw');
 timestamp_time = h5read(trajectories_file, '/timestamp/time');
@@ -122,23 +51,16 @@ end
 
 
 % import csv data
-%ss = importdata([root,excel_name]);
-if size(strfind(maindir_thecus, 'nas207-3'),1)>0
-    ss = read_csv_data([root,'.data\'],excel_name);
-else
-    ss = read_csv_data(root,excel_name);
-end
-
-
+ss = read_csv_data(csv_file);
 
 % read csv data: real time, media time, and stage coordinates xy
-real_time = ss.textdata(2:end,1);
-media_time = ss.textdata(2:end,2);
-stage_xy = ss.data;
+real_time = ss.textdata_unique(2:end,1);
+media_time = ss.textdata_unique(2:end,2);
+stage_xy = ss.data_unique;
 
 % check if number of rows in csv is equal to number of frames
-data_rows = size(ss.data,1);
-if data_rows+1 ~= size(ss.textdata,1);
+data_rows_unique = size(ss.data_unique,1);
+if size(ss.data,1)+1 ~= size(ss.textdata,1);
     txt_name = [trajectories_folder,name, '-error.txt'];
     fid_txt = fopen(txt_name,'wt');
     fprintf(fid_txt, 'excel file problem: number of rows are not in uniform: \n data_rows+1=%d \n size(ss.textdata,1)=%d',data_rows+1, size(ss.textdata,1));
@@ -153,7 +75,7 @@ if isa(media_time,'double')
 else
     % convert time from text to number
     media_time_vec = size(media_time);
-    for ii = 1:data_rows;
+    for ii = 1:data_rows_unique;
         str1 = media_time(ii);
         t1 = datevec(str1);
         media_time_vec(ii) = t1(4)*3600 + t1(5)*60 + t1(6);
@@ -233,18 +155,10 @@ for ii = 1+timeDiff:No_mask
     % show the processing percentage
     disp(ii/No_mask)
     
-    
     if split_mask<=1
         frame_bef  = mask(1:dS:end,1:dS:end,ii);
         frame_aft = mask(1:dS:end,1:dS:end,ii-timeDiff);
     else
-        % %                     mask_current =  h5read(hdf5_path, '/mask', [1,1,ii] , [frame_size(1),frame_size(2),1] );
-        % %                     mask_previous =  h5read(hdf5_path, '/mask', [1,1,ii- timeDiff] , [frame_size(1),frame_size(2),1] );
-        % %                     % subsample the image in before frame and after frame
-        % %                     frame_bef = mask_current(1:dS:end, 1:dS:end);
-        % %                     frame_aft = mask_previous(1:dS:end, 1:dS:end);
-        %                      frame_bef = mask{ceil(ii/mask_no_limit)}(1:dS:end,1:dS:end,ii-(ceil(ii/mask_no_limit)-1)*mask_no_limit);
-        %                      frame_aft = mask{ceil((ii-timeDiff)/mask_no_limit)}(1:dS:end,1:dS:end,(ii-timeDiff)-(ceil((ii-timeDiff)/mask_no_limit)-1)*mask_no_limit);
         pp1 = ceil(ii/mask_no_limit);
         pp2 = ii-(ceil(ii/mask_no_limit)-1)*mask_no_limit;
         pp3 = ceil((ii-timeDiff)/mask_no_limit);
@@ -313,8 +227,9 @@ for ii = 1+timeDiff:No_mask
 end
 
 % threshold(otsu) and trim 'abs_diff_fra' to make it good for tell the peaks
-abs_diff_fra(abs_diff_fra<(graythresh(abs_diff_fra/max(abs_diff_fra))*max(abs_diff_fra))*0.9)=0;   % *0.9 to have loose threshold
-abs_diff_fra_trim = imerode(abs_diff_fra,[1;1;1]);
+abs_diff_fra_thres1 = abs_diff_fra;
+abs_diff_fra_thres1(abs_diff_fra<(graythresh(abs_diff_fra/max(abs_diff_fra))*max(abs_diff_fra))*0.8)=0;   % *0.8 to have a loose threshold
+abs_diff_fra_trim = imerode(abs_diff_fra_thres1,[1;1;1]);
 
 %% main matrix used in alignment
 % calculate the difference of the central of the mask
@@ -328,12 +243,21 @@ diff_mask_central(:,3) = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^
 %diff_mask_central(:,4) = mask_central(2:end,3)/mask_central(end,3)*14.999*60;
 diff_mask_central(:,4) = mask_central(2:end,3);
 
-% read stage moving information and save it in 'diff_mask_central(:,5,6)' according to time stamps in 'diff_mask_central(:,4)'
+%% read stage moving information and save it in 'diff_mask_central(:,5,6)' according to time stamps in 'diff_mask_central(:,4)'
+% rescale 'media_time_vec' when last stage motion is out of time scale
+if media_time_vec(end)>  timestamp_time(end)
+    % rescale it to timestamp_time(end) and keep 4 digits after point
+    media_time_vec_adj = round(media_time_vec/(media_time_vec(end)+0.1)*timestamp_time(end),3);
+else
+    media_time_vec_adj = media_time_vec
+end
+
+% insert the stage motion according to time
 pt = 2;
 for ii = 1:frame_total-1;
     ii
     % insert the stage motion in the right time
-    if (pt <= data_rows) & (media_time_vec(pt)<diff_mask_central(ii,4))
+    if (pt <= data_rows_unique) & (media_time_vec_adj(pt)<diff_mask_central(ii,4))
         % estimate the stage motion in cvs
         diff_mask_central(ii,5:1:6) = stage_xy(pt,:)- stage_xy(pt-1,:);
         % find next shift
@@ -350,13 +274,7 @@ for qq = 1:2;
         findLabel1 = 'pixels';
     end
     
-    % end - 8 because: excel name ends with '.log.csv', 8 letters
-    if size(strfind(maindir_thecus, 'nas207-3'),1)>0
-        xDoc1 = xmlread([root,'.data\',excel_name(1:end-8),'.info.xml']);
-    else
-        xDoc1 = xmlread([root,excel_name(1:end-8),'.info.xml']);
-    end
-    
+    xDoc1 = xmlread(xml_file);
     allListitems1 = xDoc1.getElementsByTagName(findLabel1);
     
     thisListitem1 = allListitems1.item(0);
@@ -435,7 +353,7 @@ else
     
     % (xShift|yShift>4) & (diff_central is large | diff_central is set to 0)
     moving_frame(:,1) = (((abs(xShift)>4)|(abs(yShift)>4))>0|(abs_diff_fra_trim>1))&...
-        ((diff_mask_central(:,3)>1.5)|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0));
+        ((diff_mask_central(:,3)>1.8)|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0));
 end
 %moving_frame(:,2) = moving_frame(:,1);
 moving_frame(:,2) = 0;
@@ -473,25 +391,26 @@ end
 
 % 'mov_fra_ind' is the potential moving frames
 mov_fra_ind = (find(moving_frame(:,2)>0));
-mov_fra_ind_full = diff_mask_central((find(moving_frame(:,2)>0)),8);
+%mov_fra_ind_full = diff_mask_central((find(moving_frame(:,2)>0)),8);
 % 'csv_ind' is the real moving frames imported from csv
 csv_ind = (find(diff_mask_central(:,7)>0));
-csv_ind_full = diff_mask_central((find(diff_mask_central(:,7)>0)),8);
+%csv_ind_full = diff_mask_central((find(diff_mask_central(:,7)>0)),8);
 
 %% adjust the scale of "mov_fra_ind" to make it match to the "csv_ind"
 
 match_mtx = zeros(20,40);
 min_match_mtx_elem = 1e10;
 min_fra_ind_match = [];
-if length(mov_fra_ind_full)<length(csv_ind_full)
-   error('number of peaks in csv is larger than the number of recognized peaks in thevideo'); 
-end
+% if length(mov_fra_ind_full)<length(csv_ind_full)
+%    error('number of peaks in csv is larger than the number of recognized peaks in thevideo'); 
+% end
 % mm1 varies from 1 to 20 peaks shift
 for mm1 = 1:min(20,length(mov_fra_ind));
     % mm2 varies from 0.94 to 1.06, with 0.03 step size
     for mm2 = 1:40;% 20:20 
         % the key function to do the match job
-        [match_mtx(mm1, mm2),mov_fra_ind_match] = cal_match_score(csv_ind_full, mov_fra_ind_full, mm1, 0.94+0.003*mm2, diff_mask_central_full(:,7), diff_mask_central_full(:,3));
+        %[match_mtx(mm1, mm2),mov_fra_ind_match] = cal_match_score(csv_ind_full, mov_fra_ind_full, mm1, 0.94+0.003*mm2, diff_mask_central_full(:,7), diff_mask_central_full(:,3));
+        [match_mtx(mm1, mm2),mov_fra_ind_match] = cal_match_score(csv_ind, mov_fra_ind, mm1, 0.94+0.003*mm2, diff_mask_central(:,7), diff_mask_central(:,3));
         % save('cal_match_read.mat', 'csv_ind', 'mov_fra_ind', 'mm1', 'mm2', 'diff_mask_central');
         % py.cal_match_score
         % load match_mtx_res.mat
@@ -511,13 +430,13 @@ end
 min_fra_ind_match(:,5) = sort(round((min_fra_ind_match(:,2)-csv_ind(1))/(0.94+0.003*mm2_min_ind)+mov_fra_ind(mm1_min_ind)));
 min_fra_ind_match(:,6) = sort(round((min_fra_ind_match(:,1)-csv_ind(1))/(0.94+0.003*mm2_min_ind)+mov_fra_ind(mm1_min_ind)));
 
-% find the indexes back in diff_mask_central
-for ii = 1: size(min_fra_ind_match,1);
-    for jj = [1,2,5,6];
-        [min_match1, min_match1_ind] = min(abs(timestamp - min_fra_ind_match(ii,jj)));
-        min_fra_ind_match(ii,jj) = min_match1_ind(1)-1;
-    end
-end
+% % find the indexes back in diff_mask_central
+% for ii = 1: size(min_fra_ind_match,1);
+%     for jj = [1,2,5,6];
+%         [min_match1, min_match1_ind] = min(abs(timestamp - min_fra_ind_match(ii,jj)));
+%         min_fra_ind_match(ii,jj) = min_match1_ind(1)-1;
+%     end
+% end
 
 %% refine aligment indexes
 
@@ -611,7 +530,7 @@ min_fra_ind_match(:,6) = sort(mask_ind(:,1));
 %% choose better result from 'min_fra_ind_match(:,5)' and 'min_fra_ind_match(:,9)'
 % shift weights in choosing the penalty of corresponding peaks
 shift_para = 100;
-cross_para = 0.5;
+cross_para = 0.1;
 min_fra_ind_match(:,7) = zeros(size(min_fra_ind_match(:,6)));
 for iin = 1: no_nonzero_csv_ind;
     if iin == 95
@@ -620,7 +539,7 @@ for iin = 1: no_nonzero_csv_ind;
     % compare two alignment results, if they are the same, then choose any
     % one of them
     if (min_fra_ind_match(iin,5) ==  min_fra_ind_match(iin,6)) | (iin == 1)
-        min_fra_ind_match(iin,7) = min_fra_ind_match(iin,5);
+        min_fra_ind_match(iin,7) = min_fra_ind_match(iin,6);
     else
         % if two alignments are not the same, compare the shift in x,y axis,
         % in terms of 'shift of central of area' and 'result of cross
@@ -628,10 +547,14 @@ for iin = 1: no_nonzero_csv_ind;
         
         % magnitudes of shift of area centre
         xy_sum_diffCentr_5 = sum(diff_mask_central(max(1,min_fra_ind_match(iin,5)- ave_motion_len):...
-            min(diff_leng,min_fra_ind_match(iin,5)+ ave_motion_len),1:2),1);
+            min(diff_leng,min_fra_ind_match(iin,5)+ ave_motion_len),1:2),1)-...
+            (diff_mask_central(max(1,min_fra_ind_match(iin,5)- ave_motion_len-1),1:2)+...
+            diff_mask_central(min(diff_leng,min_fra_ind_match(iin,5)+ ave_motion_len+1),1:2));
         % magnitudes of shift of area centre
         xy_sum_diffCentr_6 = sum(diff_mask_central(max(1,min_fra_ind_match(iin,6)- ave_motion_len):...
-            min(diff_leng,min_fra_ind_match(iin,6)+ ave_motion_len),1:2),1);
+            min(diff_leng,min_fra_ind_match(iin,6)+ ave_motion_len),1:2),1)-...
+            (diff_mask_central(max(1,min_fra_ind_match(iin,6)- ave_motion_len-1),1:2)+...
+            diff_mask_central(min(diff_leng,min_fra_ind_match(iin,6)+ ave_motion_len+1),1:2));
         % magnitudes of the sum of crossCorrelation around each peak, for
         % the 5th column of 'min_fra_ind_match'
         xy_sum_CrossCor_5 = [sum(xShift(max(1,min_fra_ind_match(iin,5)- ave_motion_len):...
@@ -714,41 +637,26 @@ range1 = 15;
 
 % align csv_ind to mask_ind
 for ii = 1:no_nonzero_csv_ind;
-    %   ii
     % calculate stage moving vectors
     stage_move_x = align_func(stage_move_x, diff_mask_central(:,1), diff_mask_central(:,5),range1,  min_fra_ind_match(:,7), csv_ind, ii);
 end
 for ii = 1:no_nonzero_csv_ind;
-    %   ii
     % calculate stage moving vectors
     stage_move_y = align_func(stage_move_y, diff_mask_central(:,2), diff_mask_central(:,6),range1,  min_fra_ind_match(:,7), csv_ind, ii);
 end
 
 diff_mask_central(:,9) = stage_move_x;
 diff_mask_central(:,10) = stage_move_y;
-
-% save result
-temp_text_file = [name,'_align.mat'];
-
-if size(strfind(maindir_thecus, 'nas207-3'),1)>0
-    save([root,'.data\',temp_text_file],'diff_mask_central', 'min_fra_ind_match','hdf5_path');
-else
-    save([root,temp_text_file],'diff_mask_central', 'min_fra_ind_match','hdf5_path');
-end
-
-
-mov_frame_compare = [diff_mask_central(:,1), xShift, diff_mask_central(:,5),...
-    diff_mask_central(:,2), yShift, diff_mask_central(:,6)];
 % end
 
 %% show all skeletons
 
 % read skeleton
-skeleton_hdf5 = h5read([trajectories_folder,name,'_skeletons.hdf5'],'/skeleton');
+ske_file = [trajectories_folder,name,'_skeletons.hdf5'];
+skeleton_hdf5 = h5read(ske_file,'/skeleton');
 
 x_ske = (reshape(skeleton_hdf5(1,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
 y_ske = (reshape(skeleton_hdf5(2,:,:), size(skeleton_hdf5,2),size(skeleton_hdf5,3)))';
-
 
 % location of stage
 loc_stage = zeros(size(diff_mask_central,1),2);
@@ -759,49 +667,51 @@ stage_mov_y_cum = cumsum(loc_stage(:,2));
 
 % tell the length of each peak/stage_motion
 moving_frame(min_fra_ind_match(:,7),3)=1;
-sese = ones(ave_motion_len+2,1);
-moving_frame(:,3)=imdilate(moving_frame(:,3),sese);
-moving_frame(:,4) = moving_frame(:,1).*moving_frame(:,3);
+sese = ones(ave_motion_len+1,1);
+
+% dilate each peak to a length of 'ave_motion_len+1'
+moving_frame(:,3)=imdilate(moving_frame(:,3),sese);  % also can consider '(conv(moving_frame(:,3),sese))>0'
+
+% adjust the threshold of abs_diff_fra to have a tighter peak length
+abs_diff_fra_thres2 = abs_diff_fra;
+abs_diff_fra_thres2(abs_diff_fra<(graythresh(abs_diff_fra/max(abs_diff_fra))*max(abs_diff_fra)*0.7))=0;  % no 0.9 compensate here
+
+% generate a new 'moving_frame(:,1)'
+%moving_frame1 =  (((abs(xShift)>4)|(abs(yShift)>4))>0|(abs_diff_fra_thres2>1));
+%moving_frame1 =  (abs_diff_fra_thres2>1);
+moving_frame1 = (((abs(xShift)>4)|(abs(yShift)>4))>0|(abs_diff_fra_thres2>1))&...
+        ((diff_mask_central(:,3)>2)|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0));
+    
+moving_frame(:,4) = moving_frame1.*moving_frame(:,3);
+last_peak = max(find(moving_frame(:,3)==1));
+moving_frame(min(last_peak,size(moving_frame,1)):end,4)= moving_frame(min(last_peak,size(moving_frame,1)):end,1);
+
+% fix small problems in 'moving_frame(:,4)'
+for repeat_i =1:3;   % repeat this process twice
+    temp_moving_fra = moving_frame1 + moving_frame(:,4);
+    for moving_ii = 2:diff_leng-4;
+        if (temp_moving_fra(moving_ii:moving_ii+1)==[1;2])&(moving_frame1(moving_ii)==1) % extend length
+            moving_frame(moving_ii:moving_ii+1,4) = [1;1];
+        elseif (temp_moving_fra(moving_ii:moving_ii+1)==[2;1])&(moving_frame1(moving_ii+1)==1)
+            moving_frame(moving_ii:moving_ii+1,4) = [1;1];
+        elseif temp_moving_fra(moving_ii:moving_ii+2)==[2;0;2];  % fix a gap in length
+            moving_frame(moving_ii:moving_ii+2,4) = [1;1;1];
+        end
+    end
+end
+cancel_fra_ind2 = find(moving_frame(:,4) ==1);
 
 
 if size(x_ske,1) == length(stage_mov_x_cum)+1
     % calculate skeleton coordindates after considering the stage moving
-    x_ske_cum = x_ske(2:end,:) - stage_mov_x_cum*ones(1,size(x_ske,2));
-    y_ske_cum = y_ske(2:end,:) - stage_mov_y_cum*ones(1,size(y_ske,2));
-    % find indexes which are going to be canceled, they are
-    % [-4:1:4] frames around the identified peaks
-    if ave_motion_len <=2
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);]);
-    elseif ave_motion_len ==3
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);
-        ]);
-    elseif ave_motion_len ==4
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-2]);...
-        max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);]);
-    elseif ave_motion_len == 5
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-3]);max(1,[min_fra_ind_match(:,7)-2]);...
-        max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);
-        min(frame_total-1,[min_fra_ind_match(:,7)+3]);]);
-    elseif ave_motion_len == 6
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-3]);max(1,[min_fra_ind_match(:,7)-2]);...
-        max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);
-        min(frame_total-1,[min_fra_ind_match(:,7)+3]);]);
-    elseif ave_motion_len == 7
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-4]);max(1,[min_fra_ind_match(:,7)-3]);max(1,[min_fra_ind_match(:,7)-2]);...
-        max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);
-        min(frame_total-1,[min_fra_ind_match(:,7)+3]);min(frame_total-1,[min_fra_ind_match(:,7)+4]);]);
-    else
-        cancel_fra_ind = sort([max(1,[min_fra_ind_match(:,7)-5]);max(1,[min_fra_ind_match(:,7)-4]);max(1,[min_fra_ind_match(:,7)-3]);max(1,[min_fra_ind_match(:,7)-2]);...
-        max(1,[min_fra_ind_match(:,7)-1]);[min_fra_ind_match(:,7)];...
-        min(frame_total-1,[min_fra_ind_match(:,7)+1]);min(frame_total-1,[min_fra_ind_match(:,7)+2]);
-        min(frame_total-1,[min_fra_ind_match(:,7)+3]);min(frame_total-1,[min_fra_ind_match(:,7)+4]);min(frame_total-1,[min_fra_ind_match(:,7)+5]);]);
-    end
+    x_ske_cum = x_ske;
+    y_ske_cum = y_ske;
+    x_ske_cum(2:end,:) = x_ske(2:end,:) - stage_mov_x_cum*ones(1,size(x_ske,2));
+    y_ske_cum(2:end,:) = y_ske(2:end,:) - stage_mov_y_cum*ones(1,size(y_ske,2));
+    x_ske_cum(cancel_fra_ind2+1,:) = NaN;
+    y_ske_cum(cancel_fra_ind2+1,:) = NaN;
+    
+        cancel_fra_ind = cancel_fra_ind2;
         % estimate the complementary indexes
         left_fra_ind = setdiff([1:size(x_ske_cum,1)], cancel_fra_ind);
     %                 % obtain new skeleton without frames during stage moving
@@ -812,155 +722,16 @@ else
     error('frame number size does not match');
 end
 
-show_fra_ind = round(size(x_ske_cum,1));
-half_x = 320;
-half_y = 240;
+stage_motion_x = [stage_mov_x_cum(1);stage_mov_x_cum]*(-x_pixel_per_microns);
+stage_motion_y = [stage_mov_x_cum(1);stage_mov_x_cum]*(-y_pixel_per_microns);
+stage_motion_x(cancel_fra_ind2+1) = NaN;
+stage_motion_y(cancel_fra_ind2+1) = NaN;
+stage_vec = [stage_motion_x,stage_motion_y];
 
-x_ske_cum_adjusted = x_ske_cum - min(x_ske_cum(1:show_fra_ind))+half_x*2;
-y_ske_cum_adjusted = y_ske_cum - min(y_ske_cum(1:show_fra_ind))+half_y*2;
-
-fig63 = figure(63),plot(x_ske_cum_adjusted(1,:),y_ske_cum_adjusted(1,:) ); axis equal; hold on
-if size(strfind(name, 'swimming'),1)>0
-    tt_step = 5;
-else
-    tt_step = 20;
-end
-
-for tt_1 = 2:tt_step:show_fra_ind;
-    if ismember(tt_1+1, cancel_fra_ind)
-        plot(x_ske_cum_adjusted(tt_1,:),y_ske_cum_adjusted(tt_1,:),'g','LineWidth',1.1);
-    else
-        plot(x_ske_cum_adjusted(tt_1,:),y_ske_cum_adjusted(tt_1,:) );
-    end
-end
-hold off,
-
-% show the difference between identified peak's index and
-% recored peak's index (saved in cvs)
-gap_shift = min_fra_ind_match(:,7)-min_fra_ind_match(:,1);
-%fig64 = figure(64), plot(min_fra_ind_match(:,7)-min_fra_ind_match(:,1),'r-');
-fig64= figure(64), plot(min_fra_ind_match(:,1),gap_shift,'r-');
-if abs(sum((gap_shift)>1000))>2
-    error('possible alignment error occurs');
-end
-
-%% show and save as video
-
-% initialize current image
-curr_img = uint8(zeros(512,512));
-% half size of window in focus
-half_x = 320;
-half_y = 240;
-
-x_centr = -diff_mask_central(:,9);
-y_centr = -diff_mask_central(:,10);
-%             x_centr = -loc_stage(:,1);
-%             y_centr = -loc_stage(:,2);
-
-if isnan(skeleton_hdf5(1,25, 1)) | isnan(skeleton_hdf5(2,25, 1))
-    x_centr(1) = x_centr(1) + 10e3;
-    y_centr(1) = y_centr(1) + 10e3;
-else
-    x_centr(1) = x_centr(1) + skeleton_hdf5(1,25, 1);
-    y_centr(1) = y_centr(1) + skeleton_hdf5(2,25, 1);
-end
-
-% x_centr_summ = round(cumsum(x_centr)*abs(x_pixel_per_microns));
-% y_centr_summ = round(cumsum(y_centr)*abs(y_pixel_per_microns));
-x_centr_summ = round(cumsum(x_centr));
-y_centr_summ = round(cumsum(y_centr));
-
-show_fra_ind = 1200;
-% adjust x,y to focus the worm, with 1.3*half_window_size as
-% buffer surrounded
-x_centr_summ_adjusted = x_centr_summ - min(x_centr_summ(1:show_fra_ind))+half_x*1.3;
-y_centr_summ_adjusted = y_centr_summ - min(y_centr_summ(1:show_fra_ind))+half_y*1.3;
+stage_vec_save = [trajectories_folder,name,'_stage_vec.mat'];
+save(stage_vec_save,'stage_vec');
 
 
+%% compare to the 'feature.mat'
+%CompareToFeature_func
 
-% 
-% % show some frames to see the alignment result
-% fps = 30;
-% mask = h5read(hdf5_path, '/mask', [1,1,1] , [frame_size(1),frame_size(2),show_fra_ind+1] );
-% mov_ind = 1
-% for ii = 1:show_fra_ind;
-%     ii
-%     
-%     mask_backadjust = mask(:,:,ii+1);
-%     %mask_backadjust = h5read(hdf5_path, '/mask', [1,1,ii+1] , [frame_size(1),frame_size(2),1] );
-%     substitute_intensity = round(median(median(mask_backadjust(mask_backadjust>0)))*1.1);
-%     mask_backadjust(mask_backadjust<1)=substitute_intensity;
-%     
-%     mask_backadjust(1:5,:) = 256;
-%     mask_backadjust(end-4:end,:) = 256;
-%     mask_backadjust(:,1:5) = 256;
-%     mask_backadjust(:,end-4:end) = 256;
-%     
-%     if ismember(ii+1,cancel_fra_ind)
-%         mask_backadjust(6:20,:) = ceil(rand(1)*200);
-%         mask_backadjust(end-20:end-5,:) = ceil(rand(1)*200);
-%         mask_backadjust(:,6:20) = ceil(rand(1)*200);
-%         mask_backadjust(:,end-20:end-5) = ceil(rand(1)*200);
-%     end
-%     
-%     curr_img = uint8(zeros(512,512));
-%     % subsample to show the image
-%     curr_img(round(((y_centr_summ_adjusted(ii)-half_y):4:(y_centr_summ_adjusted(ii)+half_y-1))/4),...
-%         round(((x_centr_summ_adjusted(ii)-half_x):4:(x_centr_summ_adjusted(ii)+half_x-1))/4) ) = (mask_backadjust(1:4:end, 1:4:end))';
-%     % add white point as grid
-%     curr_img(1:32:end,1:32:end)= 256;
-%     %     curr_img(2:16:end,1:16:end)= 256;
-%     %     curr_img(1:16:end,2:16:end)= 256;
-%     %     curr_img(2:16:end,2:16:end)= 256;
-%     
-%     
-%     figure(10), imshow(curr_img);
-%     
-%     mov(mov_ind) = save_crt_fra(name,ii, fps);
-%     mov_ind = mov_ind +1;
-% end
-% 
-% fname = [trajectories_folder,name,'.avi' ];
-% % movie2avi(mov, fname, 'compression', 'MSVC', 'fps', fps);
-% 
-% size_uni = 0;
-% for fra_num2 = 2:size(mov,2);
-%     % check if the size of every frame is uniform. If all frame
-%     % size are uniform, size_uni should be 0, otherwise >0.
-%     uni_or_not = sum(size(mov(fra_num2).cdata)~= size(mov(1).cdata));
-%     size_uni =  size_uni + uni_or_not;
-%     % there is certain frame with size not uiform.
-%     if uni_or_not > 0
-%         fra_diff_ind = fra_num2;
-%         fra_diff_size = size(mov(fra_num2).cdata);
-%     end
-% end
-% 
-% if size_uni ==0
-%     myVideo = VideoWriter(fname);
-%     myVideo.Quality = 50;    % Default 75
-%     open(myVideo);
-%     writeVideo(myVideo, mov);
-%     close(myVideo);
-% else
-%     txt_name = [trajectories_folder,name, '-error.txt'];
-%     fid_txt = fopen(txt_name,'wt');
-%     fprintf(fid_txt, 'MOV size is not uniform: \n mov(%d).cdata=%s',fra_diff_ind, num2str(fra_diff_size));
-%     fclose(fid_txt);
-% end
-
-%saveas(figure(1), 'testfig.fig');
-%savefig(fig63,[trajectories_folder,name,'-ske.fig']);
-% savefig(fig64,[trajectories_folder,name,'-ind_shift.fig']);
-
-%            clear
-%            load path2.mat
-%            load path2_good_ind.mat
-%
-
-%         catch
-%             continue;
-%         end
-
-
-% end

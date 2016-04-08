@@ -1,5 +1,5 @@
 
-features_mat = [real_features_folder,name,'_features.mat'];
+% features_mat = [real_features_folder,name_temp,'_features.mat'];
 load(features_mat);
 % N:\Andre\results-12-05-10\Laura Grundy\egl-17\e1313\CB1313\on_food\XX\30m_wait\L\tracker_2\2010-07-09___11_43_13\
 
@@ -96,12 +96,12 @@ centr_diff_seg = sum(abs(worm_skeleton_x2(:,2:end)-worm_skeleton_x2(:,1:end-1))+
 figure(56),  plot(centr_diff,'b'), hold on,plot(centr_diff_seg,'r'), hold off
 
 
-max_gap_shift = max(abs(gap_shift));
-txt_name = [real_features_folder,name_temp, '-summary.txt'];
-fid_txt = fopen(txt_name,'wt');
-fprintf(fid_txt, 'max_gap_shift = %d \n gap_shift frame number of results: \n frame_total =%d \n frame_total_ske = %d \n frame_show =%d \n fra_total_ori =%d \n fra_total_seg_ori = %d \n frame_show_ori =%d \n skeleton difference: %d',...
-    max_gap_shift, frame_total_ske,frame_total_ske, frame_show1,fra_total_ori, fra_total_seg_ori,frame_show_ori, sum_diff);
-fclose(fid_txt);
+% max_gap_shift = max(abs(gap_shift));
+% txt_name = [real_features_folder,name_temp, '-summary.txt'];
+% fid_txt = fopen(txt_name,'wt');
+% fprintf(fid_txt, 'max_gap_shift = %d \n gap_shift frame number of results: \n frame_total =%d \n frame_total_ske = %d \n frame_show =%d \n fra_total_ori =%d \n fra_total_seg_ori = %d \n frame_show_ori =%d \n skeleton difference: %d',...
+%     max_gap_shift, frame_total_ske,frame_total_ske, frame_show1,fra_total_ori, fra_total_seg_ori,frame_show_ori, sum_diff);
+% fclose(fid_txt);
 
 
 figure(71), plot(info.video.annotations.frames == 2,'r')

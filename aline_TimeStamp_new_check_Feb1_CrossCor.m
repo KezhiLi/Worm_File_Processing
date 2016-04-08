@@ -17,15 +17,18 @@ ffmpeg = 'C:\FFMPEG\bin\ffmpeg';
 ffprobe = 'C:\FFMPEG\bin\ffprobe';
 
 % main folders
-maindir_thecus = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
-maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
-maindir_Results = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
+% maindir_thecus = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
+% maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
+% maindir_Results = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Monika';
+maindir_thecus = 'Z:\thecus\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
+maindir_MaskedVideos = 'Z:\MaskedVideos\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
+maindir_Results = 'Z:\Results\nas207-1\experimentBackup\from pc207-7\!worm_videos\copied_from_pc207-13\Andre\';
 
 % read all sub-folders
 subdir  = dir(maindir_MaskedVideos);
 
 %% the loop goes through all sub-folders
-for i = 5 : 5 %length( subdir )
+for i = 3 : 3 %length( subdir )
     if( isequal( subdir( i ).name, '.' )||...
             isequal( subdir( i ).name, '..')||...
             isequal( subdir( i ).name, '.DS_Store')||...
@@ -161,15 +164,35 @@ for i = 5 : 5 %length( subdir )
             No_mask = frame_total; %size(mask, 3);
             xShift = NaN(No_mask-timeDiff, 1);
             yShift = NaN(No_mask-timeDiff, 1);
+            
+            mask_no_limit = 3e5;
+            % if the number of frames is too large
+            split_mask = ceil(No_mask/mask_no_limit);
+            if split_mask<=1
+                mask = h5read(hdf5_path, '/mask');
+            else
+                for pp=1: split_mask-1
+                    mask{pp}=h5read(hdf5_path, '/mask', [1,1,(pp-1)*mask_no_limit+1] , [frame_size(1),frame_size(2),mask_no_limit] );
+                end
+                mask{split_mask} = h5read(hdf5_path, '/mask', [1,1,(pp-1)*mask_no_limit+1] , [frame_size(1),frame_size(2),No_mask-mask_no_limit*(split_mask-1)] );
+            end
+            
             for ii = 1+timeDiff:No_mask
                 % show the processing percentage
                 disp(ii/No_mask)
                 
-                mask_current =  h5read(hdf5_path, '/mask', [1,1,ii] , [frame_size(1),frame_size(2),1] );
-                mask_previous =  h5read(hdf5_path, '/mask', [1,1,ii- timeDiff] , [frame_size(1),frame_size(2),1] );
-                % subsample the image in before frame and after frame
-                frame_bef = mask_current(1:dS:end, 1:dS:end);
-                frame_aft = mask_previous(1:dS:end, 1:dS:end);
+                if split_mask<=1
+                    frame_bef  = mask(1:dS:end,1:dS:end,ii);
+                    frame_aft = mask(1:dS:end,1:dS:end,ii-timeDiff);
+                else
+%                     mask_current =  h5read(hdf5_path, '/mask', [1,1,ii] , [frame_size(1),frame_size(2),1] );
+%                     mask_previous =  h5read(hdf5_path, '/mask', [1,1,ii- timeDiff] , [frame_size(1),frame_size(2),1] );
+%                     % subsample the image in before frame and after frame
+%                     frame_bef = mask_current(1:dS:end, 1:dS:end);
+%                     frame_aft = mask_previous(1:dS:end, 1:dS:end);
+                     bef_ind =  
+                end
+
                 
                 % use sum to find the worms in 2 frame, and the background of value 0
                 frame_sum = abs(frame_bef)+abs(frame_aft)>0;

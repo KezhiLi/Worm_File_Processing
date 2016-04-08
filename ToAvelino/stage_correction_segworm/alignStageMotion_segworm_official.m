@@ -19,9 +19,9 @@ is_swimming = false;
 % 8. last extra peaks
 
 files = dir(main_dir);
-for iif = 30:numel(files);     
+for iif = 37:numel(files);     
     % bad files: 
-    % agar_2: 6(1),18(2),29(2,3,fail);
+    % agar_2: 6(1),18(2),29(2,3,fail), 36(?,);
     % agar_1: 6(4,fail), 9(1), 26(5), 29(,)
     % agar_goa: 9(4,?), 10(6,fail), 24(7,fail), 26(8,..),
     

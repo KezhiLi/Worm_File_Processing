@@ -43,14 +43,17 @@ end
 
         % set a threshold to distinguish impulse part and other part
         x_consider_normalized = (x_consider-min(x_consider))/max(x_consider-min(x_consider));
-        x_level = graythresh(x_consider_normalized)*max(x_consider-min(x_consider))+min(x_consider);
-        % find the central impulse indexes
-    %     if x_consider(range1+1,1)>0
-    %         impulse_ind_binary = x_consider>x_level;       
-    %     else
-    %         impulse_ind_binary = x_consider<x_level;    
-    %     end
-        impulse_ind_binary = abs(x_consider)>abs(x_level);
+        %x_level = graythresh(x_consider_normalized)*max(x_consider-min(x_consider))+min(x_consider);
+        x_consi_normal_geq = x_consider_normalized>graythresh(x_consider_normalized);
+        x_consi_normal_leq = x_consider_normalized<graythresh(x_consider_normalized);
+ 
+       % find the central impulse indexes with large magnitudes
+        if mean(abs(x_consider(x_consi_normal_geq)))>mean(abs(x_consider(x_consi_normal_leq)))
+            impulse_ind_binary = x_consi_normal_geq;       
+        else
+            impulse_ind_binary = x_consi_normal_leq;    
+        end
+      %impulse_ind_binary = abs(x_consider)>abs(x_level);
         % only keep the central impulses, cancel other fake ones, by
         % identifying the 2 closest change points near central point
         impulse_ind_binary_diff = abs(impulse_ind_binary(2:end) - impulse_ind_binary(1:end-1));
@@ -94,20 +97,26 @@ end
                     end
                 end
                 for jj = 1: range1-3;
+                    if (jj == range1-3)| (range1+1+jj>=length(impulse_ind_binary))
+                        chg_pt2 = 2*range1-4;
+                        break;
+                    end
                     if impulse_ind_binary(range1+1+jj)<0.5  % or ==0
                         chg_pt2 = range1+jj;
                         break;
                     end
-                    if jj == range1-3
-                        chg_pt2 = 2*range1-2;
-                    end
+
                 end
             end
         end
 
         % compare two window size
         % align initial
-        x_align1(chg_pt1:chg_pt2) = x_consider(chg_pt1:chg_pt2); 
+        if chg_pt2> length(x_consider)
+            x_align1(chg_pt1:length(x_consider)) = x_consider(chg_pt1:length(x_consider));             
+        else
+            x_align1(chg_pt1:chg_pt2) = x_consider(chg_pt1:chg_pt2); 
+        end
         % compensate average
         x1_ave = (stage_impulse(csv_ind(ii))-sum(x_align1(chg_pt1:chg_pt2)))/(chg_pt2-chg_pt1+1);
         % align results
@@ -119,8 +128,12 @@ end
 
         chg_pt1
         chg_pt2
+        
+        if length(x_consider) < 2*range1+1
+            x_consider = [x_consider;zeros(2*range1+1-length(x_consider),1)];
+        end
         % align initial, left 1 more, right 1 more
-        x_align2(max(1,chg_pt1-1):chg_pt2+1) = x_consider(chg_pt1-1:chg_pt2+1); 
+        x_align2(max(1,chg_pt1-1):min(chg_pt2+1,size(x_align2,1))) = x_consider(max(1,chg_pt1-1):min(chg_pt2+1,size(x_align2,1))); 
         % compensate average
         x2_ave = (x_stagemove-sum(x_align2(max(1,chg_pt1-1):chg_pt2+1)))/(chg_pt2-chg_pt1+3);
         % align results
@@ -157,14 +170,29 @@ end
         % (postive/negtive) is the same
         [var_sort, var_ind] = sort([var_x1_left,var_x2_left,var_x3_left,var_x4_left]);
         align_mtx = [x_align1,x_align2,x_align3,x_align4];
-
+        
+        % consider 4 edge cases: left
         for nn = 1:4;
             nn_var = var_ind(nn);
+            start_ind = pulse_cental_ii-range1;
+            end_ind = pulse_cental_ii+range1;
             if abs(sum(sign(align_mtx(:,nn_var))))==sum(abs(sign(align_mtx(:,nn_var))))
-                stage_move_new(pulse_cental_ii-range1:pulse_cental_ii+range1) = align_mtx(:,nn_var);
+                if start_ind < 1;
+                    stage_move_new(1:end_ind) = align_mtx(2-start_ind:end,nn_var);
+                elseif end_ind >length(stage_move_new)
+                    stage_move_new(start_ind:length(stage_move_new)) = align_mtx(1:(size(align_mtx,1)-(end_ind-length(stage_move_new))),nn_var);
+                else
+                    stage_move_new(start_ind:end_ind) = align_mtx(:,nn_var);
+                end
                 break;
             elseif nn ==4
-                stage_move_new(pulse_cental_ii-range1:pulse_cental_ii+range1) = align_mtx(:,var_ind(1));
+                if start_ind < 1;
+                    stage_move_new(1:end_ind) = align_mtx(2-start_ind:end,var_ind(1));
+                elseif end_ind >length(stage_move_new)
+                    stage_move_new(start_ind:length(stage_move_new)) = align_mtx(1:(size(align_mtx,1)-(end_ind-length(stage_move_new))),var_ind(1));
+                else
+                    stage_move_new(start_ind:end_ind) = align_mtx(:,var_ind(1));
+                end   
             end
         end
 

@@ -297,7 +297,7 @@ end
 % Compute the search boundary for the first frame-difference peak.
 maxMoveFrames = delayFrames + 1; % maximum frames a movement takes
 maxMoveTime = maxMoveFrames / fps; % maximum time a movement takes
-timeOff = maxMoveTime; % the current media time offset
+timeOff(1) = maxMoveTime; % the current media time offset
 peakI = 1; % the current stage movement peak's index
 prevPeakI = 1; % the previous stage-movement peak's index
 prevPeakEndI = 1; % the previous stage-movement peak's end index
@@ -347,11 +347,11 @@ if isOtsu
         prevPeakI = peakI;
         
         % Compute the media time offset.
-        timeOff = peakI / fps;
+        timeOff(1) = peakI / fps;
         if verbose
             peaksI(1) = peakI;
             otsuThrs(1) = otsuThr;
-            timeOffs(1) = timeOff;
+            timeOffs(1) = timeOff(1);
         end
     end
     
@@ -433,9 +433,14 @@ while i < length(mediaTimes)
     % Advance.
     i = i + 1;
     
+%     % debug purpose
+%     if  i == 4
+%         i
+%     end
+    
     % Compute the offset media time.
     prevMediaTimeOff = mediaTimeOff;
-    mediaTimeOff = mediaTimes(i) + timeOff;
+    mediaTimeOff = mediaTimes(i) + timeOff(i-1);
     if verbose
         timeOffs(i) = mediaTimeOff;
     end
@@ -703,7 +708,7 @@ while i < length(mediaTimes)
                 mediaTimes = [0 mediaTimes];
                 locations = [spareZeroTimeLocation; locations];
                 movesI(end + 1,:) = [0 0];
-                timeOff = prevPeakI / fps - mediaTimes(i - 1);
+                timeOff(i) = prevPeakI / fps - mediaTimes(i - 1);
                 if verbose
                     peaksI = [1 peaksI];
                     otsuThrs = [gOtsuThr otsuThrs];
@@ -731,7 +736,7 @@ while i < length(mediaTimes)
                 frames(1:movesI(2,1)) = true;
                 movesI(1:(i - 2),:) = movesI(2:(i - 1),:);
                 movesI(1,1) = 0;
-                timeOff = prevPeakI / fps - mediaTimes(i - 2);
+                timeOff(i) = prevPeakI / fps - mediaTimes(i - 2);
                 if verbose
                     peaksI(1:(i - 2)) = peaksI(2:(i - 1));
                     otsuThrs(1:(i - 2)) = otsuThrs(2:(i - 1));
@@ -795,7 +800,7 @@ while i < length(mediaTimes)
                 mediaTimes(1) = [];
                 locations(1,:) = [];
                 movesI(end,:) = [];
-                timeOff = prevPeakI / fps - mediaTimes(i - 1);
+                timeOff(i) = prevPeakI / fps - mediaTimes(i - 1);
                 if verbose
                     peaksI(end) = [];
                     otsuThrs(end) = [];
@@ -980,7 +985,7 @@ while i < length(mediaTimes)
     end
     
     % Compute the media time offset.
-    timeOff = peakTime - mediaTimes(i);
+    timeOff(i) = peakTime - mediaTimes(i);
     
     % We reached the end.
     endI = peakI + maxMoveFrames;

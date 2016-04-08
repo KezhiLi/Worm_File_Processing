@@ -1,4 +1,4 @@
-function ss = read_csv_data(root,excel_name)
+function ss = read_csv_data(csv_file)
 %
 %
 %
@@ -9,7 +9,7 @@ function ss = read_csv_data(root,excel_name)
 % @Copyright Kezhi Li, Imperial College London, Medical Research Council,
 % Jan 25, 2016
 
-ss = importdata([root,excel_name]);
+ss = importdata(csv_file);
 
 % fix the problem when the title is not in the first row of csv file
 if size(ss.textdata,1) < 5
@@ -29,13 +29,31 @@ end
 % fix the problem when there is duplicated items in ss
 [~,index] = unique(ss.textdata(:,2),'first');   
 if length(index)<size(ss.textdata,1)
-    %ss.textdata = ss.textdata(1:end-(size(ss.textdata,1)-length(index)),:);
-    ss.textdata(2:length(index),:) = ss.textdata(index(1:end-1),:);
-    ss.textdata = ss.textdata(1:end-(size(ss.textdata,1)-length(index)),:);
-    ss.data(1:length(index)-1,:) = ss.data(index(1:end-1)-1,:);
-    ss.data = ss.data(1:end-(size(ss.data,1)-length(index)+1),:);
-    
+    ss_temp(1,:) = ss.textdata(1,:);
+    ss_data = [];
+    curr_row = 1;    
+    for ii = 2: size(ss.textdata,1)
+        if ~isequal(ss.textdata(ii,2), ss_temp(curr_row,2))
+            curr_row = curr_row + 1;
+            ss_temp(curr_row,:) = ss.textdata(ii,:);
+            ss_data(curr_row-1,:) = ss.data(ii-1,:);
+        else
+            ss_temp(curr_row,:) = ss.textdata(ii,:);
+            ss_data(curr_row-1,:) = ss.data(ii-1,:);
+        end
+    end
+%     %ss.textdata = ss.textdata(1:end-(size(ss.textdata,1)-length(index)),:);
+%     ss.textdata(2:length(index),:) = ss.textdata(index(1:end-1),:);
+%     ss.textdata = ss.textdata(1:end-(size(ss.textdata,1)-length(index)),:);
+%     ss.data(1:length(index)-1,:) = ss.data(index(1:end-1)-1,:);
+%     ss.data = ss.data(1:end-(size(ss.data,1)-length(index)+1),:);
+    ss.textdata_unique = ss_temp;
+    ss.data_unique = ss_data;
+else
+    ss.textdata_unique = ss.textdata;
+    ss.data_unique = ss.data;
 end
+
 
 
 

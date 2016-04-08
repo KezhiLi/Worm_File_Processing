@@ -1,14 +1,29 @@
 %function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
 
 %main_dir = '/Users/ajaver/Desktop/Videos/single_worm/agar_1/MaskedVideos/';
-main_dir = 'Z:\single_worm\agar_goa\MaskedVideos';  % Z:\single_worm\agar_goa\MaskedVideos
+main_dir = 'Z:\single_worm\agar_1\MaskedVideos';
 results_dir = strrep(main_dir, 'MaskedVideos', 'Results');
 feat_dir = strrep(main_dir, 'MaskedVideos', 'Features');
 
 is_swimming = false;
 
+% problem:
+% 1. one fake peak
+% 2. one neglect peak
+% 3. too many missing frames in somewhere in frame_diffs
+% 4. too many noises(fake peaks) in frame_diffs (swimming video?)
+% 5. single bad pixel globally
+% 6. other problems: eg. fps error
+% 7. segworm misses peaks 
+% 8. last extra peaks
+
 files = dir(main_dir);
-for iif = 36 %1:numel(files) 
+for iif = 4  %numel(files);     
+    % bad files: 
+    % agar_2: 6(1),18(2),29(2,3,fail);
+    % agar_1: 6(4,fail), 9(1), 26(5), 29(,)
+    % agar_goa: 9(4,?), 10(6,fail), 24(7,fail), 26(8,..),
+    
     file = files(iif);
     
     if ~isempty(regexp(file.name, '\w*.hdf5', 'ONCE'))
@@ -23,6 +38,9 @@ for iif = 36 %1:numel(files)
         %% read time stamps. I should put this data into the masked files dir
         video_timestamp_ind = h5read(skeletons_file, '/timestamp/raw');
         video_timestamp_ind = video_timestamp_ind + 1; %correct for python indexing
+        trajectories_data = h5read(skeletons_file, '/trajectories_data'); % trajectories data
+        real_time_frame = trajectories_data.timestamp_time;
+        mask_central = [trajectories_data.cnt_coord_x, trajectories_data.cnt_coord_y,real_time_frame];
         
         if any(isnan(video_timestamp_ind))
             disp('The timestamp is corrupt or do not exist')
@@ -32,6 +50,20 @@ for iif = 36 %1:numel(files)
         video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
         fps = 1/median(diff(video_timestamp_time));
         
+            %% main matrix used in alignment
+            diff_mask_central = zeros(size(mask_central,1)-1, 4);
+
+            % column 1  and 2 is the difference of the central of the mask in x and y
+            diff_mask_central(:, 1:2) = mask_central(2:end,1:2) - mask_central(1:end-1,1:2);
+%             % delete outliers
+%             diff_mask_central(abs(diff_mask_central(:,1))>34,1) = 0;
+%             diff_mask_central(abs(diff_mask_central(:,2))>34,2) = 0;
+%             diff_mask_central(isnan(diff_mask_central(:,1)),1) = 0;
+%             diff_mask_central(isnan(diff_mask_central(:,2)),2) = 0;
+
+            % column 3 is the 2-norm shift distance considering both x,y direction
+            diff_mask_central(:,3) = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
+            diff_mask_central(:,4) = real_time_frame(2:end);
             
         %% Open the information file and read the tracking delay time.
         % (help from segworm findStageMovement) 
@@ -84,7 +116,45 @@ for iif = 36 %1:numel(files)
         % Ev's code uses the full vectors without dropping frames
         % 1. video2Diff differentiates a video frame by frame and outputs the
         % differential variance. We load these frame differences.
-        frame_diffs_d = getFrameDiffVar(masked_image_file);
+        frame_diffs_d0 = getFrameDiffVar(masked_image_file);
+        
+        
+        %% KZ added
+            
+        % %calculate shift from cross correlation between frames, and get the absolute difference between images
+
+        [xShift, yShift] = shiftCrossCorrelation(masked_image_file);
+                  
+        dS = 4;
+%         % option1: logical opration
+           hybrid_mask1 = (diff_mask_central(:,3)>3)...%|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0)...
+            |((abs(xShift)>dS)|(abs(yShift)>dS));
+        frame_diffs_d = frame_diffs_d0;
+        frame_diffs_d(hybrid_mask1<0.5)=1e-5;
+        % fix mistake in hybrid_mask in there is gap in side an interval
+        for ii = 3:length(frame_diffs_d)-2;
+            if (frame_diffs_d(ii)<1)&&(frame_diffs_d(ii-1)>1)&&(frame_diffs_d(ii+1)>1)
+                frame_diffs_d(ii) = frame_diffs_d0(ii);
+            elseif  frame_diffs_d(ii)>1&&(frame_diffs_d0(ii-2)<1)&&(frame_diffs_d0(ii-1)<1)...
+                    &&(frame_diffs_d0(ii+1)<1)&&(frame_diffs_d0(ii+2)<1);
+               frame_diffs_d(ii) = 1e-5;
+            end
+        end
+        
+%         frame_diffs_d0_normal = frame_diffs_d0/max(frame_diffs_d0);
+%         diff_var_thre = graythresh(frame_diffs_d0_normal)*0.85;
+%         hybrid_mask2 = ((diff_mask_central(:,3)>3.5)|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0))...
+%             &((abs(xShift)>dS)|(abs(yShift)>dS))&(frame_diffs_d0_normal>diff_var_thre);
+%         frame_diffs_d(hybrid_mask2)= frame_diffs_d(hybrid_mask2)*1.5;
+        
+%           % option2: linear combination
+%         para_centr = 5;
+%         para_corre = 20;
+%         frame_diff_centr = para_centr*diff_mask_central(:,3);
+%         frame_diff_corre = para_corre*abs(xShift)+abs(yShift);
+%         frame_diff_corre(frame_diff_corre>400)=400;
+%         frame_diffs_d = frame_diffs_d0+frame_diff_centr+frame_diff_corre;
+        
         
         %% The shift makes everything a bit more complicated. I have to remove the first frame, before resizing the array considering the dropping frames.
         
@@ -106,7 +176,7 @@ for iif = 36 %1:numel(files)
         
         try
             clear is_stage_move movesI stage_locations
-            [is_stage_move, movesI, stage_locations] = findStageMovement_ver2(frame_diffs, mediaTimes, locations, delay_frames, fps);
+            [is_stage_move, movesI, stage_locations] = findStageMovement_kz2(frame_diffs, mediaTimes, locations, delay_frames, fps);
             
         catch ME
             fprintf('%i) %s\n', iif, file.name)
@@ -114,7 +184,7 @@ for iif = 36 %1:numel(files)
             
             is_stage_move = ones(1, numel(frame_diffs)+1);
             stage_locations = [];
-            
+                       
             continue
             
         end
@@ -147,7 +217,6 @@ for iif = 36 %1:numel(files)
         
         %% change into a format that i can add directly to the skeletons in skeletons_file
         stage_vec_d = stage_vec(video_timestamp_ind, :);
-        
         
         %stage_vec_d(:,1) = stage_vec_d(:,1)*pixels2microns_y;
         %stage_vec_d(:,2) = stage_vec_d(:,2)*pixels2microns_x;
@@ -201,54 +270,54 @@ for iif = 36 %1:numel(files)
         %this removes crap from previous analysis
         %%save stage vector
         fid = H5F.open(skeletons_file,'H5F_ACC_RDWR','H5P_DEFAULT');
-        if H5L.exists(fid,'/stage_vec','H5P_DEFAULT')
-            H5L.delete(fid,'/stage_vec','H5P_DEFAULT');
+        if H5L.exists(fid,'/stage_vec2','H5P_DEFAULT')
+            H5L.delete(fid,'/stage_vec2','H5P_DEFAULT');
         end
         
-        if H5L.exists(fid,'/is_stage_move','H5P_DEFAULT')
-            H5L.delete(fid,'/is_stage_move','H5P_DEFAULT');
+        if H5L.exists(fid,'/is_stage_move2','H5P_DEFAULT')
+            H5L.delete(fid,'/is_stage_move2','H5P_DEFAULT');
         end
         H5F.close(fid);
         
         
         %% delete data from previous analysis if any
         fid = H5F.open(skeletons_file,'H5F_ACC_RDWR','H5P_DEFAULT');
-        if H5L.exists(fid,'/stage_movement','H5P_DEFAULT')
-            gid = H5G.open(fid, '/stage_movement');
-            if H5L.exists(gid,'stage_vec','H5P_DEFAULT')
-                H5L.delete(gid,'stage_vec','H5P_DEFAULT');
+        if H5L.exists(fid,'/stage_movement2','H5P_DEFAULT')
+            gid = H5G.open(fid, '/stage_movement2');
+            if H5L.exists(gid,'stage_vec2','H5P_DEFAULT')
+                H5L.delete(gid,'stage_vec2','H5P_DEFAULT');
             end
             
-            if H5L.exists(gid,'is_stage_move','H5P_DEFAULT')
-                H5L.delete(gid,'is_stage_move','H5P_DEFAULT');
+            if H5L.exists(gid,'is_stage_move2','H5P_DEFAULT')
+                H5L.delete(gid,'is_stage_move2','H5P_DEFAULT');
             end
             
-            if H5L.exists(gid,'frame_diff','H5P_DEFAULT')
-                H5L.delete(gid,'frame_diff','H5P_DEFAULT');
+            if H5L.exists(gid,'frame_diff2','H5P_DEFAULT')
+                H5L.delete(gid,'frame_diff2','H5P_DEFAULT');
             end
-            H5L.delete(gid,'/stage_movement','H5P_DEFAULT');
+            H5L.delete(gid,'/stage_movement2','H5P_DEFAULT');
         end
         H5F.close(fid);
         
         
         %% save stage vector
         
-        h5create(skeletons_file, '/stage_movement/stage_vec', size(stage_vec_d), 'Datatype', 'double', ...
+        h5create(skeletons_file, '/stage_movement2/stage_vec2', size(stage_vec_d), 'Datatype', 'double', ...
             'Chunksize', size(stage_vec_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
-        h5write(skeletons_file, '/stage_movement/stage_vec', stage_vec_d);
+        h5write(skeletons_file, '/stage_movement2/stage_vec2', stage_vec_d);
         
-        h5create(skeletons_file, '/stage_movement/is_stage_move', size(is_stage_move_d), 'Datatype', 'int8', ...
+        h5create(skeletons_file, '/stage_movement2/is_stage_move2', size(is_stage_move_d), 'Datatype', 'int8', ...
             'Chunksize', size(is_stage_move_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
-        h5write(skeletons_file, '/stage_movement/is_stage_move', is_stage_move_d);
+        h5write(skeletons_file, '/stage_movement2/is_stage_move2', is_stage_move_d);
         
-        h5create(skeletons_file, '/stage_movement/frame_diffs', size(frame_diffs_d), 'Datatype', 'double', ...
+        h5create(skeletons_file, '/stage_movement2/frame_diffs2', size(frame_diffs_d), 'Datatype', 'double', ...
             'Chunksize', size(frame_diffs_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
-        h5write(skeletons_file, '/stage_movement/frame_diffs', frame_diffs_d);
+        h5write(skeletons_file, '/stage_movement2/frame_diffs2', frame_diffs_d);
         
-        h5writeatt(skeletons_file, '/stage_movement', 'fps', fps)
-        h5writeatt(skeletons_file, '/stage_movement', 'delay_frames', delay_frames)
-        h5writeatt(skeletons_file , '/stage_movement',  'pixel_per_micron_scale',  pixelPerMicronScale)
-        h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_matrix)
+        h5writeatt(skeletons_file, '/stage_movement2', 'fps', fps)
+        h5writeatt(skeletons_file, '/stage_movement2', 'delay_frames', delay_frames)
+        h5writeatt(skeletons_file, '/stage_movement2',  'pixel_per_micron_scale',  pixelPerMicronScale)
+        h5writeatt(skeletons_file, '/stage_movement2',  'rotation_matrix',  rotation_matrix)
         
     end
     
