@@ -1,4 +1,14 @@
-%function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
+% %function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
+% 
+% 
+% 
+% 
+% 
+% Copyrighit: author: Kezhi Li, CSC, MRC, Imperial College, London
+% 08/04/2016
+% You will not remove any copyright or other notices from the Software;
+% you must reproduce all copyright notices and other proprietary
+% notices on any copies of the Software.
 
 %main_dir = '/Users/ajaver/Desktop/Videos/single_worm/agar_1/MaskedVideos/';
 main_dir = 'Z:\single_worm\agar_2\MaskedVideos';
@@ -8,20 +18,11 @@ feat_dir = strrep(main_dir, 'MaskedVideos', 'Features');
 % tell if it is a swimming video
 is_swimming = false;
 
-% problem:
-% 1. one fake peak
-% 2. one neglect peak
-% 3. too many missing frames in somewhere in frame_diffs
-% 4. too many noises(fake peaks) in frame_diffs (swimming video?)
-% 5. single bad pixel globally
-% 6. other problems: eg. fps error
-% 7. segworm misses peaks 
-% 8. last extra peaks
 
 files = dir(main_dir);
-for iif = 30:numel(files);     
+for iif = 37:numel(files);     
     % bad files: 
-    % agar_2: 6(1),18(2),29(2,3,fail);
+    % agar_2: 6(1),18(2),29(2,3,fail), 36(?,);
     % agar_1: 6(4,fail), 9(1), 26(5), 29(,)
     % agar_goa: 9(4,?), 10(6,fail), 24(7,fail), 26(8,..),
     
@@ -34,7 +35,7 @@ for iif = 30:numel(files);
         fprintf('%i) %s\n', iif, file.name)
         masked_image_file = fullfile(main_dir, file.name);
         skeletons_file = fullfile(results_dir, strrep(file.name, '.hdf5', '_skeletons.hdf5'));
-        features_mat = fullfile(feat_dir, strrep(file.name, '.hdf5', '_features.mat'));
+        %features_mat = fullfile(feat_dir, strrep(file.name, '.hdf5', '_features.mat'));
         
         %% read time stamps. I should put this data into the masked files dir
         video_timestamp_ind = h5read(skeletons_file, '/timestamp/raw');
@@ -192,7 +193,7 @@ for iif = 30:numel(files);
                     disp(ME)
                     is_stage_move = ones(1, numel(frame_diffs)+1);
                     stage_locations = [];
-                    movesI = [];
+                    movesI =[];
                     continue
                 end
             end
@@ -204,9 +205,10 @@ for iif = 30:numel(files);
             stage_vec(:,1) = stage_locations(1);
             stage_vec(:,2) = stage_locations(2);
             
+        elseif isempty(movesI)
+            continue
         else
             %convert output into a vector that can be added to the skeletons file to obtain the real worm displacements
-            
             for kk = 1:size(stage_locations,1)
                 bot = max(1, movesI(kk,2)+1);
                 top = min(numel(is_stage_move), movesI(kk+1,1)-1);

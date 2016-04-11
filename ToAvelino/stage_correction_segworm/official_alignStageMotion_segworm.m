@@ -1,4 +1,14 @@
-%function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
+% %function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
+% 
+% 
+% 
+% 
+% 
+% Copyrighit: author: Kezhi Li, CSC, MRC, Imperial College, London
+% 08/04/2016
+% You will not remove any copyright or other notices from the Software;
+% you must reproduce all copyright notices and other proprietary
+% notices on any copies of the Software.
 
 %main_dir = '/Users/ajaver/Desktop/Videos/single_worm/agar_1/MaskedVideos/';
 main_dir = 'Z:\single_worm\agar_2\MaskedVideos';
