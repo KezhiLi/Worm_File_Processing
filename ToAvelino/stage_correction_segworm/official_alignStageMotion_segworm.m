@@ -1,10 +1,11 @@
 %function alignStageMotion(masked_image_file,skeletons_file, is_swimming)
 
 %main_dir = '/Users/ajaver/Desktop/Videos/single_worm/agar_1/MaskedVideos/';
-main_dir = 'Z:\single_worm\agar_1\MaskedVideos';
+main_dir = 'Z:\single_worm\agar_2\MaskedVideos';
 results_dir = strrep(main_dir, 'MaskedVideos', 'Results');
 feat_dir = strrep(main_dir, 'MaskedVideos', 'Features');
 
+% tell if it is a swimming video
 is_swimming = false;
 
 % problem:
@@ -18,9 +19,9 @@ is_swimming = false;
 % 8. last extra peaks
 
 files = dir(main_dir);
-for iif = 4  %numel(files);     
+for iif = 37:numel(files);     
     % bad files: 
-    % agar_2: 6(1),18(2),29(2,3,fail);
+    % agar_2: 6(1),18(2),29(2,3,fail), 36(?,);
     % agar_1: 6(4,fail), 9(1), 26(5), 29(,)
     % agar_goa: 9(4,?), 10(6,fail), 24(7,fail), 26(8,..),
     
@@ -55,11 +56,9 @@ for iif = 4  %numel(files);
 
             % column 1  and 2 is the difference of the central of the mask in x and y
             diff_mask_central(:, 1:2) = mask_central(2:end,1:2) - mask_central(1:end-1,1:2);
-%             % delete outliers
-%             diff_mask_central(abs(diff_mask_central(:,1))>34,1) = 0;
-%             diff_mask_central(abs(diff_mask_central(:,2))>34,2) = 0;
-%             diff_mask_central(isnan(diff_mask_central(:,1)),1) = 0;
-%             diff_mask_central(isnan(diff_mask_central(:,2)),2) = 0;
+            % delete outliers
+            diff_mask_central(isnan(diff_mask_central(:,1)),1) = 10;
+            diff_mask_central(isnan(diff_mask_central(:,2)),2) = 10;
 
             % column 3 is the 2-norm shift distance considering both x,y direction
             diff_mask_central(:,3) = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
@@ -116,45 +115,46 @@ for iif = 4  %numel(files);
         % Ev's code uses the full vectors without dropping frames
         % 1. video2Diff differentiates a video frame by frame and outputs the
         % differential variance. We load these frame differences.
-        frame_diffs_d0 = getFrameDiffVar(masked_image_file);
+        frame_diffs_d0 = getFrameDiffVar_fast(masked_image_file);
         
         
         %% KZ added
             
         % %calculate shift from cross correlation between frames, and get the absolute difference between images
-
-        [xShift, yShift] = shiftCrossCorrelation(masked_image_file);
-                  
+        [xShift, yShift] = shiftCrossCorrelation_fast(masked_image_file);
+        
+        % check if the number of frames
+        if size(diff_mask_central,1)~=length(xShift)
+            disp('hdf5 and skeleton has different numbers of frames: hdf5: %d, skeleton: %d',...
+                length(xShift)+1,size(diff_mask_central,1)+1);
+            continue
+        end
+        % subsample rate in calculating xShift,yShift, used as a threshold
+        % in 'hybrid_mask1'
         dS = 4;
-%         % option1: logical opration
-           hybrid_mask1 = (diff_mask_central(:,3)>3)...%|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0)...
+%       % logical opration mask to tune the frame_diff
+        hybrid_mask0 = (diff_mask_central(:,3)>3)...%|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0)...
             |((abs(xShift)>dS)|(abs(yShift)>dS));
+        % extend mask to include the edges of peaks
+        hybrid_mask1 = imdilate(hybrid_mask0,[1;1;1]);
+        % use frame_diffs_d
         frame_diffs_d = frame_diffs_d0;
-        frame_diffs_d(hybrid_mask1<0.5)=1e-5;
+        % estimate global threshold
+        g_thre = 0.4*(graythresh(frame_diffs_d0/max(frame_diffs_d0))*max(frame_diffs_d0)+median(frame_diffs_d0));
+        % estimate cancel indexes 
+        canc_ind = (frame_diffs_d >g_thre)&(hybrid_mask1<0.5);
+        % cancel the peaks that are considered as fake peaks
+        %frame_diffs_d(hybrid_mask1<0.5)=1e-5;
+        frame_diffs_d(canc_ind) = frame_diffs_d(canc_ind)/5;
         % fix mistake in hybrid_mask in there is gap in side an interval
         for ii = 3:length(frame_diffs_d)-2;
             if (frame_diffs_d(ii)<1)&&(frame_diffs_d(ii-1)>1)&&(frame_diffs_d(ii+1)>1)
                 frame_diffs_d(ii) = frame_diffs_d0(ii);
-            elseif  frame_diffs_d(ii)>1&&(frame_diffs_d0(ii-2)<1)&&(frame_diffs_d0(ii-1)<1)...
-                    &&(frame_diffs_d0(ii+1)<1)&&(frame_diffs_d0(ii+2)<1);
-               frame_diffs_d(ii) = 1e-5;
+            elseif  frame_diffs_d(ii)>g_thre&(frame_diffs_d0(ii-2)<g_thre)&(frame_diffs_d0(ii-1)<g_thre)...
+                    &(frame_diffs_d0(ii+1)<g_thre)&(frame_diffs_d0(ii+2)<g_thre)
+               frame_diffs_d(ii) = frame_diffs_d(ii)/5;
             end
         end
-        
-%         frame_diffs_d0_normal = frame_diffs_d0/max(frame_diffs_d0);
-%         diff_var_thre = graythresh(frame_diffs_d0_normal)*0.85;
-%         hybrid_mask2 = ((diff_mask_central(:,3)>3.5)|(diff_mask_central(:,1)==0)|(diff_mask_central(:,2)==0))...
-%             &((abs(xShift)>dS)|(abs(yShift)>dS))&(frame_diffs_d0_normal>diff_var_thre);
-%         frame_diffs_d(hybrid_mask2)= frame_diffs_d(hybrid_mask2)*1.5;
-        
-%           % option2: linear combination
-%         para_centr = 5;
-%         para_corre = 20;
-%         frame_diff_centr = para_centr*diff_mask_central(:,3);
-%         frame_diff_corre = para_corre*abs(xShift)+abs(yShift);
-%         frame_diff_corre(frame_diff_corre>400)=400;
-%         frame_diffs_d = frame_diffs_d0+frame_diff_centr+frame_diff_corre;
-        
         
         %% The shift makes everything a bit more complicated. I have to remove the first frame, before resizing the array considering the dropping frames.
         
@@ -173,20 +173,29 @@ for iif = 4  %numel(files);
         frame_diffs(dd) = frame_diffs_d;
         
         %%
+        stage_locations = [];
         
-        try
-            clear is_stage_move movesI stage_locations
-            [is_stage_move, movesI, stage_locations] = findStageMovement_kz2(frame_diffs, mediaTimes, locations, delay_frames, fps);
-            
-        catch ME
-            fprintf('%i) %s\n', iif, file.name)
-            disp(ME)
-            
-            is_stage_move = ones(1, numel(frame_diffs)+1);
-            stage_locations = [];
-                       
-            continue
-            
+        % IMPORTANT: window_weights = [0~0.8]; the larger, the more weights given to
+        % the central part of interval in consideration
+        % eg. choose 0.1 for normal, 0.7 for extream case ;
+        for  wind_weights = 0.1:0.2:0.9;
+            try
+                clear is_stage_move movesI stage_locations
+                [is_stage_move, movesI, stage_locations] = findStageMovement_kz2(frame_diffs, mediaTimes, locations, delay_frames,...
+                    fps, wind_weights);
+            catch ME
+                if strfind(ME.message,'We cannot find a matching peak nor shift')~=1&~isempty(stage_locations)
+                    disp(['finally successful when wind_weights = ',num2str(wind_weights,'%.3f')])
+                    break;
+                else
+                    fprintf('%i) %s\n', iif, file.name)
+                    disp(ME)
+                    is_stage_move = ones(1, numel(frame_diffs)+1);
+                    stage_locations = [];
+                    movesI =[];
+                    continue
+                end
+            end
         end
         %%
         stage_vec = nan(numel(is_stage_move),2);
@@ -195,9 +204,10 @@ for iif = 4  %numel(files);
             stage_vec(:,1) = stage_locations(1);
             stage_vec(:,2) = stage_locations(2);
             
+        elseif isempty(movesI)
+            continue
         else
             %convert output into a vector that can be added to the skeletons file to obtain the real worm displacements
-            
             for kk = 1:size(stage_locations,1)
                 bot = max(1, movesI(kk,2)+1);
                 top = min(numel(is_stage_move), movesI(kk+1,1)-1);
@@ -221,50 +231,6 @@ for iif = 4  %numel(files);
         %stage_vec_d(:,1) = stage_vec_d(:,1)*pixels2microns_y;
         %stage_vec_d(:,2) = stage_vec_d(:,2)*pixels2microns_x;
         stage_vec_d = stage_vec_d';
-        
-        
-        %%
-        %
-        %{
-        load(features_mat)
-        seg_motion = info.video.annotations.frames==2;
-        plot(worm.posture.skeleton.x(:, 1:15:end), worm.posture.skeleton.y(:, 1:15:end))
-        if (all(seg_motion==is_stage_move_d))
-            disp('Segworm and this code have the same frame aligment.')
-        end
-        %}
-        %{
-        skeletons = h5read(skeletons_file, '/skeleton');
-        
-        skeletons_mu = nan(size(skeletons));
-        
-        for kk = 1:size(skeletons_mu,3)
-            pixels = skeletons(:, :, kk)';
-            origin = stage_vec_d(:,kk);
-            % Rotate the pixels.
-            pixels = (rotation_matrix * pixels')';
-
-            % Convert the pixels coordinates to micron locations.
-            microns(:,1) = origin(1) - pixels(:,1) * pixelPerMicronScale(1);
-            microns(:,2) = origin(2) - pixels(:,2) * pixelPerMicronScale(2);
-            skeletons_mu(:,:,kk) = microns';
-        end
-        
-        
-        skel_x = squeeze(skeletons_mu(1,:,:));
-        skel_y = squeeze(skeletons_mu(2,:,:));
-        
-        figure, hold on
-        %plot(worm.posture.skeleton.x(25,:))
-        plot(skel_x(25,1:400))
-        
-        figure
-        plot(squeeze(skel_x(25,:)))
-        
-        figure
-        plot(skel_x(:, 1:15:end), skel_y(:, 1:15:end))
-        
-        %}
         
         %%
         %this removes crap from previous analysis
@@ -320,8 +286,6 @@ for iif = 4  %numel(files);
         h5writeatt(skeletons_file, '/stage_movement2',  'rotation_matrix',  rotation_matrix)
         
     end
-    
-    
 end
 
 %masked_image_file = '/Users/ajaver/Desktop/Videos/single_worm/agar_goa/MaskedVideos/goa-1 (sa734)I on food L_2010_03_04__10_44_32___8___6.hdf5';
