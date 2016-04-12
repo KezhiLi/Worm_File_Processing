@@ -10,6 +10,21 @@
 % you must reproduce all copyright notices and other proprietary
 % notices on any copies of the Software.
 
+
+file_txt_ID = fopen('failed_files.txt','r');
+gap_sym = '/Volumes/behavgenom_archive$';
+[failed_files_all] = fscanf(file_txt_ID, '%s');
+fclose(file_txt_ID);
+
+ini_loc = strfind(failed_files_all,gap_sym);
+
+file_name = {};
+
+for ii = 1:numel(ini_loc)-1
+    file_name = [file_name;failed_files_all(ini_loc(ii):ini_loc(ii+1)-1)];
+end
+file_name = [file_name;failed_files_all(ini_loc(numel(ini_loc)):end)];
+
 %main_dir = '/Users/ajaver/Desktop/Videos/single_worm/agar_1/MaskedVideos/';
 main_dir = 'Z:\single_worm\agar_2\MaskedVideos';
 results_dir = strrep(main_dir, 'MaskedVideos', 'Results');
@@ -182,7 +197,7 @@ for iif = 37:numel(files);
         for  wind_weights = 0.1:0.2:0.9;
             try
                 clear is_stage_move movesI stage_locations
-                [is_stage_move, movesI, stage_locations] = findStageMovement_kz2(frame_diffs, mediaTimes, locations, delay_frames,...
+                [is_stage_move, movesI, stage_locations] = findStageMovement_gs(frame_diffs, mediaTimes, locations, delay_frames,...
                     fps, wind_weights);
             catch ME
                 if strfind(ME.message,'We cannot find a matching peak nor shift')~=1&~isempty(stage_locations)
@@ -204,9 +219,6 @@ for iif = 37:numel(files);
             %there was no movements
             stage_vec(:,1) = stage_locations(1);
             stage_vec(:,2) = stage_locations(2);
-            
-        elseif isempty(movesI)
-            continue
         else
             %convert output into a vector that can be added to the skeletons file to obtain the real worm displacements
             for kk = 1:size(stage_locations,1)
