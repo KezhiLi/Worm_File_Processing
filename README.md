@@ -4,9 +4,7 @@
 
 The Worm Alignement consists of 4 steps:
 
-
-
-The Multiworm Tracker consist in 4 steps:
+1. **Read Stage Motion Data:** There are two ways to read the necessary data. 
 
 *Note: the tracker uses numpy arrays with the C ordering (the last dimension is the fast changing).*
 
