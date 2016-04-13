@@ -243,8 +243,8 @@ for  pp = 0:3;
                     return
                 end
                 frame_diffs(dd) = frame_diffs_d;
-            % elseif it is in the 3rd loop    
-            elseif pp==3
+            % elseif it is in the 3rd(final) loop, and still cannot find an answer    
+            elseif pp == 3
                 %%
                 % exit_flag = 71 means alignment errors still exist after
                 % running the new function
@@ -254,6 +254,8 @@ for  pp = 0:3;
                 
                 fprintf('%s\n', masked_image_file)
                 disp(ME)
+                
+                % give default values 
                 is_stage_move = ones(numel(frame_diffs)+1, 1);
                 stage_locations = [];
                 movesI = [];
@@ -265,7 +267,7 @@ for  pp = 0:3;
         continue;
     end
 end
-%%
+%% set stage_vec
 stage_vec = nan(numel(is_stage_move),2);
 if numel(movesI) == 2 && all(movesI==0)
     %there was no movements

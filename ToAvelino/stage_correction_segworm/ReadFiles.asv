@@ -3,8 +3,9 @@
 %fclose(fileID);
 
 
-
+% change '/' to '\' due to the difference between python and matlab
 failed_files_all = strrep(fileread('failed_files.txt'),'/','\');
+% replace folder
 gap_sym = '\Volumes\behavgenom_archive$';
 
 ini_loc = strfind(failed_files_all,gap_sym);
@@ -12,33 +13,52 @@ ini_loc = strfind(failed_files_all,gap_sym);
 
 file_name = {};
 
-% 
+% restore file names to independent cell
 for ii = 1:numel(ini_loc)-1
     file_name = [file_name;failed_files_all(ini_loc(ii):ini_loc(ii+1)-2)];
 end
 file_name = [file_name;failed_files_all(ini_loc(numel(ini_loc)):end)];
 
+% record results
 success = [];
-num = 0;
-for iif = 1:numel(ini_loc);     
-
+% record number of failed files
+num_fail = 0;
+skip_file = [];
+% loop goes through all files in txt
+for iif = 131:numel(ini_loc);     
+    
+    % set current file and result hdf5 file
     cur_file = file_name{iif};
     result_file0 = strrep(cur_file, 'MaskedVideos', 'Results');
     result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
     
+    % show the progress
     fprintf('%i/%i) %s\n', iif, numel(ini_loc),cur_file)
     
     if ~isempty(regexp(cur_file, '\w*.hdf5', 'ONCE'))
-        
+        % change group folder name to Z:
         masked_image_file = strrep(cur_file,gap_sym,'Z:');
         skeletons_file = strrep(result_file,gap_sym,'Z:');
         fprintf('%i) %s\n', iif, masked_image_file)
-        try
-            success =[success;alignStageMotionSegwormFun_kz(masked_image_file,skeletons_file)];
-        catch ME
-            aa = aa+1;
+        video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
+        if video_timestamp_time(end)> 60*61;
+            skip_file = [ skip_file; iif];
+            continue;
         end
+        try
+            % record if it successes, 0 or 1
+            cur_suc = 0;
+            cur_suc = alignStageMotionFun(masked_image_file,skeletons_file);   
+        catch ME
+            num_fail = num_fail+1;
+        end
+         success =[success;cur_suc];
+         fileID = fopen('recover_files.txt','w');
+         fprintf(fileID,'%s ',A);
+         fclose(fileID);
     else
         error('file name error');
     end
+   
+    
 end
