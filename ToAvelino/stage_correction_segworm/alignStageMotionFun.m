@@ -1,9 +1,9 @@
-function success = alignStageMotionSegwormFun_kz(masked_image_file,skeletons_file)
+function success = alignStageMotionFun(masked_image_file,skeletons_file)
+% main function to align the stage motion, and save the results in skeletons_file 
 % 
-% 
-% 
-% 
-% 
+% Input: 
+% masked_image_file: the file name of masked image, with format .hdf5
+% skeletons_file: the corresponding skeleton file, with format .hdf5
 % 
 % 
 % 

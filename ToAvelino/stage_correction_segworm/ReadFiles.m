@@ -25,7 +25,7 @@ success = [];
 num_fail = 0;
 
 % loop goes through all files in txt
-for iif = 1:numel(ini_loc);     
+for iif = 70:numel(ini_loc);     
 
     % set current file and result hdf5 file
     cur_file = file_name{iif};
@@ -42,7 +42,7 @@ for iif = 1:numel(ini_loc);
         fprintf('%i) %s\n', iif, masked_image_file)
         try
             % record if it successes, 0 or 1
-            success =[success;alignStageMotionSegwormFun_kz(masked_image_file,skeletons_file)];
+            success =[success;alignStageMotionFun(masked_image_file,skeletons_file)];
         catch ME
             num_fail = num_fail+1;
         end

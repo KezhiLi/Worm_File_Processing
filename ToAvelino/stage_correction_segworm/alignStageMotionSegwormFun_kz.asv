@@ -1,5 +1,5 @@
 function success = alignStageMotionSegwormFun_kz(masked_image_file,skeletons_file)
-% 
+% main function to align the stage motion 
 % 
 % 
 % 
