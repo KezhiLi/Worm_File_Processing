@@ -17,8 +17,7 @@ The Worm Alignement consists of 4 steps:
 
 * Note: The following scripts are based the result of 1), given (`masked_image_file`, `skeletons_file`).
 
-2. **perform improved alignment algorithm**
-This improved alignment algorithm is based on segworm, improved by Avelino Javer and Kezhi Li. The idea of segworm's alignment is based on the variance of the pixel difference between succesive frames (`frame_diffs`).  
+2. **perform improved alignment algorithm** This improved alignment algorithm is based on segworm, improved by Avelino Javer and Kezhi Li. The idea of segworm's alignment is based on the variance of the pixel difference between succesive frames (`frame_diffs`).  
 
 
 
