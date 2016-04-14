@@ -20,7 +20,7 @@ The Worm Alignement consists of 4 steps:
 
 2. **perform basic alignment algorithm** This basic alignment algorithm is based on segworm alignment, improved by Avelino Javer and Kezhi Li. The idea of segworm's alignment is based on the variance of the pixel difference between succesive frames (`frame_diffs`).  
 
- ![frame_diffs](Worm_File_Processing/ToAvelino/stage_correction_segworm/frame_diffs_github1.png)
+ ![frame_diffs](https://github.com/KezhiLi/Worm_File_Processing/blob/master/ToAvelino/stage_correction_segworm/frame_diffs_github1.png?raw=true)
 
 
 
