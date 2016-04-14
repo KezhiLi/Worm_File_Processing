@@ -25,10 +25,10 @@ success = [];
 num_fail = 0;
 skip_file = [];
 % loop goes through all files in txt
-for iif = 131:numel(ini_loc);     
+for iif = 1:numel(ini_loc);     
     
     % set current file and result hdf5 file
-    cur_file = file_name{iif};
+    cur_file = strtrim(file_name{iif});
     result_file0 = strrep(cur_file, 'MaskedVideos', 'Results');
     result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
     
