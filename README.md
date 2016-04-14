@@ -14,8 +14,10 @@ The Worm Alignement consists of 4 steps:
   - `/timestamp`  time stamp index
   - `/timestamp_time`  time stamp time
 
+* Note: The following scripts are based the result of 1), given (`masked_image_file`, `skeletons_file`).*
 
-*Note: the tracker uses numpy arrays with the C ordering (the last dimension is the fast changing).*
+2. **perform improved alignment algorithm**
+
 
 
 
