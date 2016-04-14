@@ -6,8 +6,13 @@ The Worm Alignement consists of 4 steps:
 
 1. **Read Stage Motion Data:** There are two ways to read the necessary data: from 1) .hdf5 file or 2) .xml, .csv and other files
 1) Two .hdf5 files (`masked_image_file`, `skeletons_file`) include all necessary data to proceed the alignment, including
-  - `/mask` compressed array with the masked image.
-  - `/xml_info`
+  - `/mask` compressed array with the masked image, and pixel per microns.
+  - `/xml_info` delay_frames
+  - `/timestamp/time` the time stamp, which can lead to fps
+  - `/trajectories_data` calculate the central mask shift
+2) `.xml` reads pixel per microns, `.csv` reads the stage motion postions and time, `.hdf5` reads `/mask`, `_trajectories.hdf5` reads
+  - `/timestamp`  time stamp index
+  - `/timestamp_time`  time stamp time
 
 
 *Note: the tracker uses numpy arrays with the C ordering (the last dimension is the fast changing).*
