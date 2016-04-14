@@ -23,8 +23,8 @@ The Worm Alignement consists of 4 steps:
  ![frame_diffs](https://github.com/KezhiLi/Worm_File_Processing/blob/master/ToAvelino/stage_correction_segworm/frame_diffs_github1.png?raw=true)
  
  Avelino modified the segmentation algorithm, refined the skeleton and read `.hdf5` files instead of '.avi' files comparing to segworm. Kezhi continues to update the algorithm in the aspects of
-   - after recognizing 1 peak, cancel it to prevent the miss recognition for next peak
-   - 
+  - after recognizing 1 peak, cancel it to prevent the miss recognition for next peak
+  - 
 
 
 
