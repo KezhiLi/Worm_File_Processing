@@ -4,8 +4,7 @@
 
 The Worm Alignement consists of 4 steps:
 
-1. **Read Stage Motion Data:** There are two ways to read the necessary data: from 1) .hdf5 file or 2) .xml, .csv and other files
- 
+1. **Read Stage Motion Data:** There are two ways to read the necessary data: from 1) .hdf5 file or 2) .xml, .csv and other files \n
 1) Two .hdf5 files (`masked_image_file`, `skeletons_file`) include all necessary data to proceed the alignment, including
   - `/mask` compressed array with the masked image, and pixel per microns.
   - `/xml_info` delay_frames
