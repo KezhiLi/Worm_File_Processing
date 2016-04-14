@@ -18,9 +18,13 @@ The Worm Alignement consists of 4 steps:
 
   Note: The following scripts are based the result of 1), given (`masked_image_file`, `skeletons_file`).
 
-2. **perform basic alignment algorithm** This basic alignment algorithm is based on segworm alignment, improved by Avelino Javer and Kezhi Li. The idea of segworm's alignment is based on the variance of the pixel difference between succesive frames (`frame_diffs`).  
+2. **perform basic alignment algorithm** This basic alignment algorithm is based on segworm alignment, improved by Avelino Javer and Kezhi Li. The idea of segworm's alignment is based on the variance of the pixel difference between succesive frames (`frame_diffs`) and identify peaks one by one.  
 
  ![frame_diffs](https://github.com/KezhiLi/Worm_File_Processing/blob/master/ToAvelino/stage_correction_segworm/frame_diffs_github1.png?raw=true)
+ 
+ Avelino modified the segmentation algorithm, refined the skeleton and read `.hdf5` files instead of '.avi' files comparing to segworm. Kezhi continues to update the algorithm in the aspects of
+   - after recognizing 1 peak, cancel it to prevent the miss recognition for next peak
+   - 
 
 
 
