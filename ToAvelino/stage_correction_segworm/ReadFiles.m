@@ -4,7 +4,7 @@
 
 
 % change '/' to '\' due to the difference between python and matlab
-failed_files_all = strrep(fileread('failed_files.txt'),'/','\');
+failed_files_all = strrep(fileread('long_files.txt'),'/','\');
 % replace folder
 gap_sym = '\Volumes\behavgenom_archive$';
 
@@ -42,14 +42,14 @@ for iif = 1:numel(ini_loc);
         skeletons_file = strrep(result_file,gap_sym,'Z:');
         fprintf('%i) %s\n', iif, masked_image_file)
         video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
-        if video_timestamp_time(end)> 60*61;
-            skip_file = [ skip_file; iif];
-            % 
-             fileID = fopen('long_files.txt','a');
-             fprintf(fileID,'%s ',cur_file);
-             fclose(fileID);
-            continue;
-        end
+%         if video_timestamp_time(end)> 60*61;
+%             skip_file = [ skip_file; iif];
+%             % 
+%              fileID = fopen('long_files.txt','a');
+%              fprintf(fileID,'%s ',cur_file);
+%              fclose(fileID);
+%             continue;
+%         end
         try
             % record if it successes, 0 or 1
             
@@ -60,18 +60,18 @@ for iif = 1:numel(ini_loc);
          success =[success;cur_suc];
          if cur_suc 
              % write to good file txt
-             fileID = fopen('good_files.txt','a');
+             fileID = fopen('good_long_files.txt','a');
              fprintf(fileID,'%s ',cur_file);
              fclose(fileID);
          else
              % write to bad file txt
-             fileID = fopen('bad_files.txt','a');
+             fileID = fopen('bad_long_files.txt','a');
              fprintf(fileID,'%s ',cur_file);
              fclose(fileID);
          end
     else
         % write to error file txt
-        fileID = fopen('error_files.txt','a');
+        fileID = fopen('error_long_files.txt','a');
         fprintf(fileID,'%s ',cur_file);
         fclose(fileID);
         error('file name error');
