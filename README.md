@@ -1,6 +1,6 @@
 # Worm_File_Processing 
 
-**Objective:**These files are for the alignement of worm vedios. Because the camera stages moves when the worm moves out of the central of scope, we need to build a correspondence between the stage motion recorded and the real stage motion time in the video. Modify the file `ReadFiles.m` accordingly to read file names that are going to process.  In it, the function ` alignStageMotionFun.m` is run to do the Worm Alignment. The inputs are `.hdf5` and `_skeletons.hdf5`. The alignment results are saved in `_skeletons.hdf5` with fields `/stage_movement`.
+**Objective:**This package is for the alignement of worm vedios. Because the camera stages moves when the worm moves out of the central of scope, we need to build a correspondence between the stage motion recorded and the real stage motion time in the video. Modify the file `ReadFiles.m` accordingly to read file names that are going to process.  In it, the function ` alignStageMotionFun.m` is run to do the Worm Alignment. The inputs are `.hdf5` and `_skeletons.hdf5`. The alignment results are saved in `_skeletons.hdf5` with fields `/stage_movement`.
 
 The Worm Alignement consists of 4 steps:
 
