@@ -1,11 +1,12 @@
 function [frames, movesI, locations] = ...
     findStageMovement_gs(frameDiffs, mediaTimes, locations, delayFrames, fps, wind_weights)
 
-%modified by Kezhi. Add Gaussian window, frameDiffs_cancel (cancel the previous peak), 
+% Add Gaussian window, frameDiffs_cancel (cancel the previous peak), 
 % switch the start and end indexes if they are not in ascent.
+% modified by Kezhi, April, 2016.
 
-
-%MODIFIED FROM SEGWORM AEJ. This help is outdated, I'll modified later. AEJ
+%MODIFIED FROM SEGWORM AEJ. This help is outdated, I'll modified later.
+%AEJ, Feb. 2016
 
 %FINDSTAGEMOVEMENT Find stage movements in a worm experiment.
 %

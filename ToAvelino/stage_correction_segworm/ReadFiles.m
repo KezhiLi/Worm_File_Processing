@@ -29,16 +29,23 @@ for iif = 1:numel(ini_loc);
     
     % set current file and result hdf5 file
     cur_file = strtrim(file_name{iif});
-    result_file0 = strrep(cur_file, 'MaskedVideos', 'Results');
+    
+    % use MaskedVideos_old here
+    cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
+    
+    result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+    
     result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
     
-    % show the progress
-    fprintf('%i/%i) %s\n', iif, numel(ini_loc),cur_file)
+
     
-    if ~isempty(regexp(cur_file, '\w*.hdf5', 'ONCE'))
+    % show the progress
+    fprintf('%i/%i) %s\n', iif, numel(ini_loc),cur_file_now)
+    
+    if ~isempty(regexp(cur_file_now, '\w*.hdf5', 'ONCE'))
         cur_suc = 0;
         % change group folder name to Z:
-        masked_image_file = strrep(cur_file,gap_sym,'Z:');
+        masked_image_file = strrep(cur_file_now,gap_sym,'Z:');
         skeletons_file = strrep(result_file,gap_sym,'Z:');
         fprintf('%i) %s\n', iif, masked_image_file)
         video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
