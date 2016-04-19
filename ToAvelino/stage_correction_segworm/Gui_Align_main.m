@@ -1,4 +1,4 @@
-function Gui_Align_main(hObject, handles);
+function Gui_Align_main(hObject, handles)
 % 
 % 
 % 
@@ -21,8 +21,10 @@ result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
 % change group folder name to Z:
 masked_image_file = strrep(cur_file_now,gap_sym,'Z:');
 skeletons_file = strrep(result_file,gap_sym,'Z:');
-fprintf('%i) %s\n', iif, masked_image_file)
+fprintf(' %s\n', masked_image_file);
 
+
+    
 try
     % record if it successes, 0 or 1
     
@@ -167,9 +169,14 @@ for  pp = 0:3;
         stage_locations = [];
         
         % indicate frame_diffs
-        set(handles.text23,'string',[num2str(k),'/',string_Nfrm]);
+        hh=zoom;
+        setAllowAxesZoom(hh,handles.axes1,true);
+%         set(handles.axes1,'toolbar');
+%         set(handles,'menubar','figure');
+        plot(frame_diffs(1:1000),'parent',handles.axes1);
         
-        [is_stage_move, movesI, stage_locations] = findStageMovement_gs(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights);
+                
+        [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles);
         exit_flag = 1;
         if ~isempty(stage_locations)
             break;
@@ -283,6 +290,8 @@ for  pp = 0:3;
         end
         continue;
     end
+    
+    uiwait(gcf)
 end
 %% set stage_vec
 stage_vec = nan(numel(is_stage_move),2);

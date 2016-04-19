@@ -22,7 +22,7 @@ function varargout = Manual_Align(varargin)
 
 % Edit the above text to modify the response to help Manual_Align
 
-% Last Modified by GUIDE v2.5 18-Apr-2016 16:14:27
+% Last Modified by GUIDE v2.5 19-Apr-2016 14:30:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -91,12 +91,18 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+uiwait(gcf)
+
+
+
 
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+uiresume(gcf)
 
 
 
@@ -120,3 +126,77 @@ function edit1_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton4.
+function pushbutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+% change '/' to '\' due to the difference between python and matlab
+failed_files_all = strrep(fileread('bad_files.txt'),'/','\');
+% replace folder
+gap_sym = '\Volumes\behavgenom_archive$';
+
+ini_loc = strfind(failed_files_all,gap_sym);
+%ini_loc = regexp(failed_files_all,gap_sym);
+
+file_name = {};
+
+% restore file names to independent cell
+for ii = 1:numel(ini_loc)-1
+    file_name = [file_name;failed_files_all(ini_loc(ii):ini_loc(ii+1)-2)];
+end
+file_name = [file_name;failed_files_all(ini_loc(numel(ini_loc)):end)];
+
+iif = str2num(get(handles.edit2,'string'));
+
+% set current file and result hdf5 file
+cur_file = strtrim(file_name{iif});
+
+cur_file = strrep(cur_file, '\Volumes\behavgenom_archive$\MaskedVideos', 'Z:\thecus');
+
+avi_file = strrep(cur_file, '.hdf5', '.avi');
+
+set(handles.edit1,'string',cur_file);
+set(handles.text13,'string',avi_file);
+
+system(['vlc "',avi_file,'"']);
+
+%play
+
+% f = figure('Position',[0 0 800 600]);
+% a=actxcontrol('VideoLAN.VLCPlugin.2',[0,0,800,600]);
+% a.playlist.add(avi_file);
+% a.playlist.play();
+
+
+
+
+
