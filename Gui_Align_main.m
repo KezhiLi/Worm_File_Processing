@@ -340,6 +340,8 @@ disp('Finished.')
     % indicate movesI
     set(handles.uitable1,'Data',movesI);
     
+    figure, 
+    
 catch ME
     disp(ME);
 end
