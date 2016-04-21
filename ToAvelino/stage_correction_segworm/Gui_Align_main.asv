@@ -171,6 +171,15 @@ for  pp = 0:3;
         clear is_stage_move movesI
         stage_locations = [];
         
+        % modify frame_diffs manually
+        if handles.checkbox1.Value & pp >0
+            fromInd = str2double(get(handles.edit4,'string'));
+            ToInd = str2double(get(handles.edit5,'string'));
+            ValueMod = str2double(get(handles.edit6,'string'));
+
+            frame_diffs(fromInd:ToInd) = ValueMod;
+        end
+        
         % indicate frame_diffs
         hh=zoom;
         setAllowAxesZoom(hh,handles.axes1,true);
@@ -337,14 +346,10 @@ h5write(skeletons_file, '/stage_movement/is_stage_move', is_stage_move_d);
 h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
 disp('Finished.')
 
-    % indicate movesI
-    set(handles.uitable1,'Data',movesI);
-    
+
 catch ME
     disp(ME);
 end
-
-
 
 
 

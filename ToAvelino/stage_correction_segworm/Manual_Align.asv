@@ -78,10 +78,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.checkbox1,'Value',0);
-set(handles.edit4,'Enable','off');
-set(handles.edit5,'Enable','off');
-set(handles.edit6,'Enable','off');
+set(handles.checkbox1,)
 
 Gui_Align_main(hObject, handles);
 

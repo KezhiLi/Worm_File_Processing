@@ -223,20 +223,6 @@ frameDiffs(frameDiffs == 0) = NaN;
 frameDiffs(2:(length(frameDiffs) + 1)) = frameDiffs / max(frameDiffs);
 frameDiffs(1) = frameDiffs(2);
 
-%% set manual data here
-
-% modify frame_diffs manually
-if handles.checkbox1.Value 
-    fromInd = str2double(get(handles.edit4,'string'));
-    ToInd = str2double(get(handles.edit5,'string'));
-    ValueMod = str2double(get(handles.edit6,'string'));
-    
-    frameDiffs(fromInd:ToInd) = ValueMod;
-end
-
-
-%%
-
 % Compute the global Otsu and small frame-difference thresholds.
 % Note 1: we use the Otsu to locate frame-difference peaks corresponding to
 % stage movement.
@@ -973,7 +959,7 @@ while i < length(mediaTimes)
         
             % Report the error.
             if ~verbose
-                set(handles.text18,'string',['An error is founded here, but it may be fixed! Please modify frameDiffs manually, and then click `Continue` to finish the alignment. msg: ', msg]);
+                set(handles.text18,'string','An error is founded here. Please click `Continue` to finish the alignment.');
                 uiwait(gcf)
                 error(id, msg);
                 
