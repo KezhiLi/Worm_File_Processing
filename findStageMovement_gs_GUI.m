@@ -1,9 +1,10 @@
 function [frames, movesI, locations] = ...
     findStageMovement_gs_GUI(frameDiffs, mediaTimes, locations, delayFrames, fps, wind_weights, hObject, handles)
+% Gui function is modified accordingly in Apr. 2016
 
 % Add Gaussian window, frameDiffs_cancel (cancel the previous peak), 
 % switch the start and end indexes if they are not in ascent.
-% modified by Kezhi, April, 2016.
+% modified by Kez, April, 2016.
 
 %MODIFIED FROM SEGWORM AEJ. This help is outdated, I'll modified later.
 %AEJ, Feb. 2016
@@ -233,7 +234,34 @@ if handles.checkbox1.Value
     
     frameDiffs(fromInd:ToInd) = ValueMod;
 end
-
+if handles.checkbox2.Value 
+    fromInd = str2double(get(handles.edit7,'string'));
+    ToInd = str2double(get(handles.edit8,'string'));
+    ValueMod = str2double(get(handles.edit9,'string'));
+    
+    frameDiffs(fromInd:ToInd) = ValueMod;
+end
+if handles.checkbox3.Value 
+    fromInd = str2double(get(handles.edit10,'string'));
+    ToInd = str2double(get(handles.edit11,'string'));
+    ValueMod = str2double(get(handles.edit12,'string'));
+    
+    frameDiffs(fromInd:ToInd) = ValueMod;
+end
+if handles.checkbox4.Value 
+    fromInd = str2double(get(handles.edit13,'string'));
+    ToInd = str2double(get(handles.edit14,'string'));
+    ValueMod = str2double(get(handles.edit15,'string'));
+    
+    frameDiffs(fromInd:ToInd) = ValueMod;
+end
+if handles.checkbox5.Value 
+    fromInd = str2double(get(handles.edit16,'string'));
+    ToInd = str2double(get(handles.edit17,'string'));
+    ValueMod = str2double(get(handles.edit18,'string'));
+    
+    frameDiffs(fromInd:ToInd) = ValueMod;
+end
 
 %%
 
@@ -460,10 +488,10 @@ while i < length(mediaTimes)
 %         i
 %     end
     
-    %% kezhi update
-    nonan_movesI = ~isnan(movesI(:,2));
-    ave_interval = median(movesI(nonan_movesI,2)-movesI(nonan_movesI,1));
+    %% switch movesI if necessary and update frameDiffs_cancel
     if i > 3;
+        nonan_movesI = ~isnan(movesI(:,2));
+        ave_interval = median(movesI(nonan_movesI,2)-movesI(nonan_movesI,1));
         % check if the start-end interval is switched
         if movesI(i-2,1)>movesI(i-2,2)
            disp([i-2,movesI(i-2,1),movesI(i-2,2)])
@@ -473,7 +501,7 @@ while i < length(mediaTimes)
         end
         % set Diffs inside the interval to 0 (cancel the previous peak)
         frameDiffs_cancel(movesI(i-2,1):movesI(i-2,2))=0;
-        frameDiffs_cancel(movesI(i-1,1):floor(movesI(i-1,1)+ave_interval)+1)=0;
+        frameDiffs_cancel(movesI(i-1,1):min(length(frameDiffs_cancel),floor(movesI(i-1,1)+ave_interval)+2))=0;
     end
     
     %%
@@ -494,7 +522,7 @@ while i < length(mediaTimes)
     end
     %searchDiffs = frameDiffs(startI:endI);
     
-    %% kezhi:
+    %% update the searchDiffs, show it in gui:
      L = endI-startI+1; a = 1+L/20;
      NN = L-1;
      nn = (0:NN)'-NN/2;
@@ -973,6 +1001,7 @@ while i < length(mediaTimes)
         
             % Report the error.
             if ~verbose
+                set(handles.pushbutton3,'Enable','on');
                 set(handles.text18,'string',['An error is founded here, but it may be fixed! Please modify frameDiffs manually, and then click `Continue` to finish the alignment. msg: ', msg]);
                 uiwait(gcf)
                 error(id, msg);
@@ -1082,7 +1111,7 @@ while i < length(mediaTimes)
     timeOff(i) = peakTime - mediaTimes(i);
     
     % indicate timeOff
-    plot(timeOff,'parent',handles.axes3);
+    plot([min(i,max(2,i-200)):i],timeOff(min(i,max(2,i-200)):i),'parent',handles.axes3);
     
     % We reached the end.
     endI = peakI + maxMoveFrames;

@@ -22,16 +22,16 @@ function varargout = Manual_Align(varargin)
 
 % Edit the above text to modify the response to help Manual_Align
 
-% Last Modified by GUIDE v2.5 20-Apr-2016 17:59:49
+% Last Modified by GUIDE v2.5 21-Apr-2016 18:14:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @Manual_Align_OpeningFcn, ...
-                   'gui_OutputFcn',  @Manual_Align_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @Manual_Align_OpeningFcn, ...
+    'gui_OutputFcn',  @Manual_Align_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -63,7 +63,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Manual_Align_OutputFcn(hObject, eventdata, handles) 
+function varargout = Manual_Align_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -78,12 +78,23 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.checkbox1,'Value',0);
-set(handles.edit4,'Enable','off');
-set(handles.edit5,'Enable','off');
-set(handles.edit6,'Enable','off');
 
-Gui_Align_main(hObject, handles);
+% set(handles.checkbox1,'Value',0);
+% set(handles.edit4,'Enable','off');
+% set(handles.edit5,'Enable','off');
+% set(handles.edit6,'Enable','off');
+
+set(handles.text18,'string','processing, please wait');
+set(handles.pushbutton1,'Enable','on');
+set(handles.pushbutton2,'Enable','on');
+
+set(handles.pushbutton5,'Enable','on');
+
+[frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles);
+handles.frame_diffs_d0 = frame_diffs_d0;
+handles.xyShift = xyShift;
+
+guidata(hObject, handles);
 
 
 
@@ -167,35 +178,42 @@ cla(handles.axes2)
 cla(handles.axes3)
 cla(handles.uitable1)
 
-read_file_list = get(handles.edit3,'String');
-
-try 
-    failed_files_all = strrep(fileread(read_file_list),'/','\');
-catch ME
-    disp('The file list to read is not correct.');
-    % change '/' to '\' due to the difference between python and matlab
-    failed_files_all = strrep(fileread('bad_files.txt'),'/','\');
-    % indicate otsuThr
-    set(handles.edit3,'string','bad_files.txt');
+if handles.edit2.Enable & handles.edit3.Enable
+    
+    read_file_list = get(handles.edit3,'String');
+    
+    try
+        failed_files_all = strrep(fileread(read_file_list),'/','\');
+    catch ME
+        disp('The file list to read is not correct.');
+        % change '/' to '\' due to the difference between python and matlab
+        failed_files_all = strrep(fileread('bad_files.txt'),'/','\');
+        % indicate otsuThr
+        set(handles.edit3,'string','bad_files.txt');
+    end
+    % replace folder
+    gap_sym = '\Volumes\behavgenom_archive$';
+    
+    ini_loc = strfind(failed_files_all,gap_sym);
+    %ini_loc = regexp(failed_files_all,gap_sym);
+    
+    file_name = {};
+    
+    % restore file names to independent cell
+    for ii = 1:numel(ini_loc)-1
+        file_name = [file_name;failed_files_all(ini_loc(ii):ini_loc(ii+1)-2)];
+    end
+    file_name = [file_name;failed_files_all(ini_loc(numel(ini_loc)):end)];
+    
+    iif = str2num(get(handles.edit2,'string'));
+    
+    % set current file and result hdf5 file
+    cur_file = strtrim(file_name{iif});
+    
+else
+    cur_file = strtrim(get(handles.edit1,'String'));
+    cur_file = strrep(cur_file,'/','\');
 end
-% replace folder
-gap_sym = '\Volumes\behavgenom_archive$';
-
-ini_loc = strfind(failed_files_all,gap_sym);
-%ini_loc = regexp(failed_files_all,gap_sym);
-
-file_name = {};
-
-% restore file names to independent cell
-for ii = 1:numel(ini_loc)-1
-    file_name = [file_name;failed_files_all(ini_loc(ii):ini_loc(ii+1)-2)];
-end
-file_name = [file_name;failed_files_all(ini_loc(numel(ini_loc)):end)];
-
-iif = str2num(get(handles.edit2,'string'));
-
-% set current file and result hdf5 file
-cur_file = strtrim(file_name{iif});
 
 cur_file = strrep(cur_file, '\Volumes\behavgenom_archive$\', 'Z:\');
 
@@ -204,8 +222,17 @@ avi_file = strrep(avi_file_temp, 'MaskedVideos', 'thecus');
 
 set(handles.edit1,'string',cur_file);
 set(handles.text13,'string',avi_file);
+try
+    system(['vlc "',avi_file,'"']);
+catch ME
+    disp('The file cannot be read correctly.');
+end
 
-system(['vlc "',avi_file,'"']);
+set(handles.pushbutton1,'Enable','on');
+
+
+
+
 
 %play
 
@@ -222,7 +249,7 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 global terminated;
-terminated = 1; 
+terminated = 1;
 
 
 
@@ -257,16 +284,21 @@ function checkbox1_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox1
 
-handles.checkbx1 = get(hObject,'Value');
+% handles.checkbx1 = get(hObject,'Value');
 
-if handles.checkbx1
+if handles.checkbox1.Value  %handles.checkbx1
     set(handles.edit4,'Enable','on');
     set(handles.edit5,'Enable','on');
     set(handles.edit6,'Enable','on');
+    set(handles.edit19,'Enable','on');
 else
     set(handles.edit4,'Enable','off');
     set(handles.edit5,'Enable','off');
-    set(handles.edit6,'Enable','off');    
+    set(handles.edit6,'Enable','off');
+    if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
+            |handles.checkbox4.Value|handles.checkbox5.Value)
+        set(handles.edit19,'Enable','off');
+    end
 end
 % Update handles structure
 guidata(hObject, handles);
@@ -281,6 +313,25 @@ function checkbox2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox2
+%handles.checkbx2 = get(hObject,'Value');
+
+if handles.checkbox2.Value  %handles.checkbx2
+    set(handles.edit7,'Enable','on');
+    set(handles.edit8,'Enable','on');
+    set(handles.edit9,'Enable','on');
+    set(handles.edit19,'Enable','on');
+else
+    set(handles.edit7,'Enable','off');
+    set(handles.edit8,'Enable','off');
+    set(handles.edit9,'Enable','off');
+    if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
+            |handles.checkbox4.Value|handles.checkbox5.Value)
+        set(handles.edit19,'Enable','off');
+    end
+end
+% Update handles structure
+guidata(hObject, handles);
+
 
 
 % --- Executes on button press in checkbox3.
@@ -291,6 +342,23 @@ function checkbox3_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox3
 
+if handles.checkbox3.Value  %handles.checkbx2
+    set(handles.edit10,'Enable','on');
+    set(handles.edit11,'Enable','on');
+    set(handles.edit12,'Enable','on');
+    set(handles.edit19,'Enable','on');
+else
+    set(handles.edit10,'Enable','off');
+    set(handles.edit11,'Enable','off');
+    set(handles.edit12,'Enable','off');
+    if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
+            |handles.checkbox4.Value|handles.checkbox5.Value)
+        set(handles.edit19,'Enable','off');
+    end
+end
+% Update handles structure
+guidata(hObject, handles);
+
 
 % --- Executes on button press in checkbox4.
 function checkbox4_Callback(hObject, eventdata, handles)
@@ -299,6 +367,23 @@ function checkbox4_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox4
+if handles.checkbox4.Value  %handles.checkbx2
+    set(handles.edit13,'Enable','on');
+    set(handles.edit14,'Enable','on');
+    set(handles.edit15,'Enable','on');
+    set(handles.edit19,'Enable','on');
+else
+    set(handles.edit13,'Enable','off');
+    set(handles.edit14,'Enable','off');
+    set(handles.edit15,'Enable','off');
+    if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
+            |handles.checkbox4.Value|handles.checkbox5.Value)
+        set(handles.edit19,'Enable','off');
+    end
+end
+% Update handles structure
+guidata(hObject, handles);
+
 
 
 % --- Executes on button press in checkbox5.
@@ -308,6 +393,25 @@ function checkbox5_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox5
+
+if handles.checkbox5.Value  %handles.checkbx2
+    set(handles.edit16,'Enable','on');
+    set(handles.edit17,'Enable','on');
+    set(handles.edit18,'Enable','on');
+    set(handles.edit19,'Enable','on');
+else
+    set(handles.edit16,'Enable','off');
+    set(handles.edit17,'Enable','off');
+    set(handles.edit18,'Enable','off');
+    if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
+            |handles.checkbox4.Value|handles.checkbox5.Value)
+        set(handles.edit19,'Enable','off');
+    end
+end
+% Update handles structure
+guidata(hObject, handles);
+
+
 
 
 
@@ -653,3 +757,89 @@ function edit18_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.checkbox1,'Value',0);
+set(handles.edit4,'Enable','off');
+set(handles.edit5,'Enable','off');
+set(handles.edit6,'Enable','off');
+
+set(handles.checkbox2,'Value',0);
+set(handles.edit7,'Enable','off');
+set(handles.edit8,'Enable','off');
+set(handles.edit9,'Enable','off');
+
+set(handles.checkbox3,'Value',0);
+set(handles.edit10,'Enable','off');
+set(handles.edit11,'Enable','off');
+set(handles.edit12,'Enable','off');
+
+set(handles.checkbox4,'Value',0);
+set(handles.edit13,'Enable','off');
+set(handles.edit14,'Enable','off');
+set(handles.edit15,'Enable','off');
+
+set(handles.checkbox5,'Value',0);
+set(handles.edit16,'Enable','off');
+set(handles.edit17,'Enable','off');
+set(handles.edit18,'Enable','off');
+
+
+
+% --- Executes on button press in pushbutton7.
+function pushbutton7_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+Gui_Align_rerun(hObject, handles);
+
+
+
+function edit19_Callback(hObject, eventdata, handles)
+% hObject    handle to edit19 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit19 as text
+%        str2double(get(hObject,'String')) returns contents of edit19 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit19_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit19 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in checkbox7.
+function checkbox7_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox7
+if handles.checkbox7.Value  %handles.checkbx2
+    set(handles.edit1,'Enable','on');
+    set(handles.edit2,'Enable','off');
+    set(handles.edit3,'Enable','off');
+else
+    set(handles.edit1,'Enable','off');
+    set(handles.edit2,'Enable','on');
+    set(handles.edit3,'Enable','on');
+end
+% Update handles structure
+guidata(hObject, handles);
+

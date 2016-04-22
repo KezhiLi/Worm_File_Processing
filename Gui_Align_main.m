@@ -1,10 +1,22 @@
-function Gui_Align_main(hObject, handles)
+function [frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles)
+% 
+% Alignment function used in GUI
+% firstly the function will run the basic alignment alogirhtm based on
+% segworm. If it fails, the advanced alignment will run for 3 iterations. For
+% each iteration, if the algorithm fails in a way that can be fixed, the
+% 'frameDiff', 'searchDiffs' and 'timeOff' are shown in GUI. People can modify
+% the 'frameDiffs' accordingly in the 'Manually Modify frameDiffs' panel based on
+% 'movesI' and 3 figures. Then click 'Continue' to run the algorithm again
+% with new 'frameDiffs' and 'pp'.
 % 
 % 
 % 
-% 
-% 
-% 
+% Copyrighit: author: Kezhi Li, CSC, MRC, Imperial College, London
+% 21/04/2016
+% You will not remove any copyright or other notices from the Software;
+% you must reproduce all copyright notices and other proprietary
+% notices on any copies of the Software.
+
 
 global terminated;
 terminated = 0; 
@@ -23,8 +35,6 @@ masked_image_file = strrep(cur_file_now,gap_sym,'Z:');
 skeletons_file = strrep(result_file,gap_sym,'Z:');
 fprintf(' %s\n', masked_image_file);
 
-
-    
 try
     % record if it successes, 0 or 1
     
@@ -119,7 +129,7 @@ h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_mat
 % Ev's code uses the full vectors without dropping frames
 % 1. video2Diff differentiates a video frame by frame and outputs the
 % differential variance. We load these frame differences.
-frame_diffs_d = getFrameDiffVar_fast(masked_image_file)';
+frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
 
 %% Read the media times and locations from the log file.
 % (help from segworm findStageMovement)
@@ -200,6 +210,7 @@ for  pp = 0:3;
                 'Chunksize', size(frame_diffs_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
             h5write(skeletons_file, '/stage_movement/frame_diffs', wind_weights);
             
+            set(handles.text18,'string','The alignment is done successfully!');
             break;
         % stage_locations is still empty
         else
@@ -210,7 +221,8 @@ for  pp = 0:3;
                     trajectories_data.cnt_coord_y(2:end)-trajectories_data.cnt_coord_y(1:end-1)];
                 diff_mask_central_abs = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
                 % %calculate shift from cross correlation between frames, and get the absolute difference between images
-                [xShift, yShift] = shiftCrossCorrelation_fast(masked_image_file);
+                [xShift, yShift] = shiftCrossCorrelation_gui(masked_image_file, hObject, handles);
+                xyShift = [xShift, yShift];
                 
                 % check if the number of frames
                 if size(diff_mask_central_abs)~=length(xShift)
@@ -338,10 +350,9 @@ h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
 disp('Finished.')
 
     % indicate movesI
-    set(handles.uitable1,'Data',movesI);
-    
-    figure, 
-    
+   % set(handles.uitable1,'Data',movesI); 
+
+     
 catch ME
     disp(ME);
 end
