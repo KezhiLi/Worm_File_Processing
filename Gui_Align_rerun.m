@@ -32,8 +32,9 @@ cur_file = get(handles.edit1,'String');
 
 gap_sym = '\Volumes\behavgenom_archive$';
 
-cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
-result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+cur_file_now = cur_file; % strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
+%result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results_old');
 result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
 
 % change group folder name to Z:
@@ -104,7 +105,13 @@ try
     dd = strsplit(dd{2}, '</delay>');
     delay_str = dd{1};
     delay_time = str2double(delay_str) / 1000;
-    delay_frames = ceil(delay_time * fps);
+    
+    % reset delay_frames
+    if isempty(handles.edit20)|(str2double(get(handles.edit20,'string')))<0
+        delay_frames = ceil(delay_time * fps);
+    else
+        delay_frames = floor(str2double(get(handles.edit20,'string')));
+    end
     
     %% Read the scale conversions, we would need this when we want to convert the pixels into microns
     pixelPerMicronX = 1/h5readatt(masked_image_file, '/mask', 'pixels2microns_x');
@@ -251,10 +258,20 @@ try
         plot(frame_diffs(1:min(1000,length(frame_diffs))),'parent',handles.axes1);
 
         [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles);
-        exit_flag = 1;
+        exit_flag = 73;
         set(handles.text18,'string','The alignment is done successfully!');
-            % indicate movesI
         set(handles.uitable1,'Data',movesI);
+        if exist('ME')
+            clear ME
+        end
+        
+        h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag));
+            % write updated frame_diffs to file
+            h5create(skeletons_file, '/stage_movement/frame_diffs', size(wind_weights), 'Datatype', 'double', ...
+                'Chunksize', size(frame_diffs_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
+            h5write(skeletons_file, '/stage_movement/frame_diffs', wind_weights);
+            % indicate movesI
+        
     catch ME
         disp(ME)
         %% KZ added

@@ -26,8 +26,11 @@ cur_file = get(handles.edit1,'String');
 
 gap_sym = '\Volumes\behavgenom_archive$';
 
-cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
-result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+% cur_file_now = cur_file strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
+% result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+
+cur_file_now = cur_file;
+result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results_old');
 result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
 
 % change group folder name to Z:
@@ -98,7 +101,12 @@ dd = strsplit(xml_info, '<delay>');
 dd = strsplit(dd{2}, '</delay>');
 delay_str = dd{1};
 delay_time = str2double(delay_str) / 1000;
-delay_frames = ceil(delay_time * fps);
+% reset delay_frames
+if strcmp(handles.edit20.Enable,'off')|isempty(handles.edit20)|(str2double(get(handles.edit20,'string')))<0
+    delay_frames = ceil(delay_time * fps);
+else
+    delay_frames = floor(str2double(get(handles.edit20,'string')));
+end
 
 %% Read the scale conversions, we would need this when we want to convert the pixels into microns
 pixelPerMicronX = 1/h5readatt(masked_image_file, '/mask', 'pixels2microns_x');
@@ -130,6 +138,9 @@ h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_mat
 % 1. video2Diff differentiates a video frame by frame and outputs the
 % differential variance. We load these frame differences.
 frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
+    if terminated ==1
+        return;
+    end
 
 %% Read the media times and locations from the log file.
 % (help from segworm findStageMovement)
@@ -166,7 +177,10 @@ frame_diffs(dd) = frame_diffs_d;
 
 stage_locations =[];
 
-
+    % indicate delayFrames
+    set(handles.text24,'string',num2str(delay_frames));   
+    set(handles.edit20,'string',num2str(delay_frames));   
+    
 %% try to run the aligment and return empty data if it fails
 for  pp = 0:3;
     
@@ -191,6 +205,22 @@ for  pp = 0:3;
         [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles);
         exit_flag = 1;
         if ~isempty(stage_locations)
+            disp(['Finally successful when wind_weights = ',num2str(wind_weights,'%.3f')])
+            % exit_flag = 70 means alignment problem solved by using new
+            % 'frame)diffs' and 'wind_weights'
+            exit_flag = 70;
+            warning('Return non-NaN stage vector. Exiting with has_finished flag %i', exit_flag);
+            % write exit_flag to file
+            h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag));
+            % write updated frame_diffs to file
+            h5create(skeletons_file, '/stage_movement/frame_diffs', size(wind_weights), 'Datatype', 'double', ...
+                'Chunksize', size(frame_diffs_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
+            h5write(skeletons_file, '/stage_movement/frame_diffs', wind_weights);
+            
+            set(handles.text18,'string','The alignment is done successfully!');
+        if exist('ME')
+            clear ME
+        end
             break;
         end
     catch ME
@@ -222,6 +252,9 @@ for  pp = 0:3;
                 diff_mask_central_abs = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
                 % %calculate shift from cross correlation between frames, and get the absolute difference between images
                 [xShift, yShift] = shiftCrossCorrelation_gui(masked_image_file, hObject, handles);
+                    if terminated ==1
+                        return;
+                    end
                 xyShift = [xShift, yShift];
                 
                 % check if the number of frames

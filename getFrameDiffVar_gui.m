@@ -1,4 +1,8 @@
 function  img_abs_diff = getFrameDiffVar_gui(masked_image_file, hObject, handles)
+
+global terminated;
+terminated = 0; 
+
 %% mask information
 mask_info = h5info(masked_image_file, '/mask');
 % size of each frame
@@ -14,7 +18,10 @@ frame_prev =  h5read(masked_image_file, '/mask', [1,1,1], [frame_size(1),frame_s
 cur_frame_blk = h5read(masked_image_file, '/mask', [1,1,1], ...
             [frame_size(1),frame_size(2), min(frame_total,blk)]);
 for ii = 2:frame_total;
-    
+    if terminated ==1
+        break;
+    end
+        
     % ii = nn*blk + mm
     nn = floor(ii/blk);
     mm = mod(ii, blk);
@@ -26,7 +33,7 @@ for ii = 2:frame_total;
         fprintf('%2.2f%%\n', (ii+1)/frame_total*100)
         cur_frame_blk = h5read(masked_image_file, '/mask', [1,1,(nn*blk+mm)], ...
             [frame_size(1),frame_size(2), min(frame_total-nn*blk,blk)]);
-        set(handles.text18,'string',['progress: ', num2str((ii+1)/frame_total*100),'%']);
+        set(handles.text18,'string',['Frame Diff Variance progress: ', num2str((ii+1)/frame_total*100),'%']);
         drawnow()
     end
     

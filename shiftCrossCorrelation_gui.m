@@ -6,6 +6,8 @@ function [xShift, yShift] = shiftCrossCorrelation_gui(masked_image_file, hObject
 %
 %
 %
+global terminated;
+terminated = 0; 
 
 %% set parameters
 timeDiff = 1; % how many frames between aligned images?
@@ -27,6 +29,11 @@ frame_prev =  h5read(masked_image_file, '/mask', [1,1,1], [frame_size(1),frame_s
 cur_frame_blk = h5read(masked_image_file, '/mask', [1,1,1], ...
             [frame_size(1),frame_size(2), min(frame_total,blk)]);
 for ii = 1+timeDiff:timeDiff:frame_total
+    
+    if terminated ==1
+        break;
+    end
+    
     % ii = nn*blk + mm
     nn = floor(ii/blk);
     mm = mod(ii, blk);
@@ -37,7 +44,7 @@ for ii = 1+timeDiff:timeDiff:frame_total
         fprintf('%2.2f%%\n', (ii+1)/frame_total*100)
         cur_frame_blk = h5read(masked_image_file, '/mask', [1,1,(nn*blk+mm)], ...
             [frame_size(1),frame_size(2),min(frame_total-nn*blk,blk)]);
-        set(handles.text18,'string',['progress: ', num2str((ii+1)/frame_total*100),'%']);
+        set(handles.text18,'string',['CrossCorrelation progress: ', num2str((ii+1)/frame_total*100),'%']);
         drawnow()
     end
     

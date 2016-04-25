@@ -227,35 +227,35 @@ frameDiffs(1) = frameDiffs(2);
 %% set manual data here
 
 % modify frame_diffs manually
-if handles.checkbox1.Value 
+if handles.checkbox1.Value & strcmp(handles.checkbox1.Enable, 'on')
     fromInd = str2double(get(handles.edit4,'string'));
     ToInd = str2double(get(handles.edit5,'string'));
     ValueMod = str2double(get(handles.edit6,'string'));
     
     frameDiffs(fromInd:ToInd) = ValueMod;
 end
-if handles.checkbox2.Value 
+if handles.checkbox2.Value & strcmp(handles.checkbox1.Enable, 'on')
     fromInd = str2double(get(handles.edit7,'string'));
     ToInd = str2double(get(handles.edit8,'string'));
     ValueMod = str2double(get(handles.edit9,'string'));
     
     frameDiffs(fromInd:ToInd) = ValueMod;
 end
-if handles.checkbox3.Value 
+if handles.checkbox3.Value & strcmp(handles.checkbox1.Enable, 'on')
     fromInd = str2double(get(handles.edit10,'string'));
     ToInd = str2double(get(handles.edit11,'string'));
     ValueMod = str2double(get(handles.edit12,'string'));
     
     frameDiffs(fromInd:ToInd) = ValueMod;
 end
-if handles.checkbox4.Value 
+if handles.checkbox4.Value & strcmp(handles.checkbox1.Enable, 'on')
     fromInd = str2double(get(handles.edit13,'string'));
     ToInd = str2double(get(handles.edit14,'string'));
     ValueMod = str2double(get(handles.edit15,'string'));
     
     frameDiffs(fromInd:ToInd) = ValueMod;
 end
-if handles.checkbox5.Value 
+if handles.checkbox5.Value & strcmp(handles.checkbox1.Enable, 'on')
     fromInd = str2double(get(handles.edit16,'string'));
     ToInd = str2double(get(handles.edit17,'string'));
     ValueMod = str2double(get(handles.edit18,'string'));
@@ -477,16 +477,18 @@ prevSmallThr = gSmallThr; % the previous small threshold
 isShifted = false; % have we shifted the data to try another alignment?
 
 frameDiffs_cancel = frameDiffs; 
+
+set(handles.text18,'string','aligning, please wait');
 i = 1;
 while i < length(mediaTimes)
     
     % Advance.
     i = i + 1;
     
-%     % debug purpose
-%     if  i == 72
-%         i
-%     end
+    % debug purpose
+    if  i == 214
+        i
+    end
     
     %% switch movesI if necessary and update frameDiffs_cancel
     if i > 3;
@@ -533,15 +535,18 @@ while i < length(mediaTimes)
     
     % indicate searchDiffs
     plot([startI:endI],searchDiffs,'parent',handles.axes2);
-    
     plot([max(1,startI-700):min(length(frameDiffs),endI+200)],frameDiffs(max(1,startI-700):min(length(frameDiffs),endI+200)),'parent',handles.axes1);
+     
     
     frame_impul = zeros(1,length(frameDiffs));
     inddd = round(mediaTimes*fps);
     frame_impul(inddd+1) = 1;
     hold(handles.axes1,'on')
     plot([max(1,startI-700):min(length(frameDiffs),endI+200)],frame_impul(max(1,startI-700):min(length(frameDiffs),endI+200))/2,'parent',handles.axes1);
+    plot([startI,startI],[0,0.5],'--gs','LineWidth',2,'parent',handles.axes1);
+    plot([endI,endI],[0,0.5],'--gs','LineWidth',2,'parent',handles.axes1);
     hold(handles.axes1,'off') 
+    drawnow()
     
     %%
     % Is the Otsu threshold large enough?
@@ -674,8 +679,11 @@ while i < length(mediaTimes)
     set(handles.text9,'string',num2str(gOtsuThr));
     % indicate gSmallThr
     set(handles.text10,'string',num2str(gSmallThr));
+    % indicate delayFrames
+    set(handles.text24,'string',num2str(delayFrames));   
     % indicate movesI
     set(handles.uitable1,'Data',movesI);
+    drawnow()
     %%
     % We can't find any distinguishably large peaks.
     peakI = [];
@@ -1004,6 +1012,7 @@ while i < length(mediaTimes)
                 set(handles.pushbutton3,'Enable','on');
                 set(handles.text18,'string',['An error is founded here, but it may be fixed! Please modify frameDiffs manually, and then click `Continue` to finish the alignment. msg: ', msg]);
                 uiwait(gcf)
+                set(handles.text18,'string','continuing, please wait');
                 error(id, msg);
                 
             % Report the warning.

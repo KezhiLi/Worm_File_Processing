@@ -22,7 +22,7 @@ function varargout = Manual_Align(varargin)
 
 % Edit the above text to modify the response to help Manual_Align
 
-% Last Modified by GUIDE v2.5 21-Apr-2016 18:14:17
+% Last Modified by GUIDE v2.5 22-Apr-2016 17:25:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -84,17 +84,34 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % set(handles.edit5,'Enable','off');
 % set(handles.edit6,'Enable','off');
 
+terminated =0;
+
 set(handles.text18,'string','processing, please wait');
 set(handles.pushbutton1,'Enable','on');
 set(handles.pushbutton2,'Enable','on');
-
 set(handles.pushbutton5,'Enable','on');
+set(handles.checkbox1,'Enable','on');
+set(handles.checkbox2,'Enable','on');
+set(handles.checkbox3,'Enable','on');
+set(handles.checkbox4,'Enable','on');
+set(handles.checkbox5,'Enable','on');
+drawnow()
 
+% main function to do the alignment
 [frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles);
+
 handles.frame_diffs_d0 = frame_diffs_d0;
 handles.xyShift = xyShift;
 
 guidata(hObject, handles);
+
+set(handles.pushbutton6,'Enable','on');
+set(handles.pushbutton7,'Enable','on');
+
+
+
+
+
 
 
 
@@ -177,6 +194,10 @@ cla(handles.axes1)
 cla(handles.axes2)
 cla(handles.axes3)
 cla(handles.uitable1)
+cla(handles.text18)
+
+global terminated;
+terminated =0;
 
 if handles.edit2.Enable & handles.edit3.Enable
     
@@ -229,6 +250,35 @@ catch ME
 end
 
 set(handles.pushbutton1,'Enable','on');
+set(handles.text18,'string','watching the .avi video');
+
+set(handles.pushbutton6,'Enable','off');
+set(handles.pushbutton7,'Enable','off');
+
+set(handles.checkbox1,'Enable','off');
+set(handles.checkbox2,'Enable','off');
+set(handles.checkbox3,'Enable','off');
+set(handles.checkbox4,'Enable','off');
+set(handles.checkbox5,'Enable','off');
+set(handles.edit19,'Enable','off');
+set(handles.edit20,'Enable','off');
+
+set(handles.edit4,'Enable','off');
+set(handles.edit5,'Enable','off');
+set(handles.edit6,'Enable','off');
+set(handles.edit7,'Enable','off');
+set(handles.edit8,'Enable','off');
+set(handles.edit9,'Enable','off');
+set(handles.edit10,'Enable','off');
+set(handles.edit11,'Enable','off');
+set(handles.edit12,'Enable','off');
+set(handles.edit13,'Enable','off');
+set(handles.edit14,'Enable','off');
+set(handles.edit15,'Enable','off');
+set(handles.edit16,'Enable','off');
+set(handles.edit17,'Enable','off');
+set(handles.edit18,'Enable','off');
+
 
 
 
@@ -250,6 +300,11 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 
 global terminated;
 terminated = 1;
+
+set(handles.pushbutton1,'Enable','off');
+set(handles.pushbutton2,'Enable','off');
+set(handles.pushbutton3,'Enable','off');
+set(handles.pushbutton5,'Enable','off');
 
 
 
@@ -291,6 +346,7 @@ if handles.checkbox1.Value  %handles.checkbx1
     set(handles.edit5,'Enable','on');
     set(handles.edit6,'Enable','on');
     set(handles.edit19,'Enable','on');
+    set(handles.edit20,'Enable','on');
 else
     set(handles.edit4,'Enable','off');
     set(handles.edit5,'Enable','off');
@@ -298,6 +354,7 @@ else
     if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
             |handles.checkbox4.Value|handles.checkbox5.Value)
         set(handles.edit19,'Enable','off');
+        set(handles.edit20,'Enable','off');
     end
 end
 % Update handles structure
@@ -320,6 +377,7 @@ if handles.checkbox2.Value  %handles.checkbx2
     set(handles.edit8,'Enable','on');
     set(handles.edit9,'Enable','on');
     set(handles.edit19,'Enable','on');
+    set(handles.edit20,'Enable','on');
 else
     set(handles.edit7,'Enable','off');
     set(handles.edit8,'Enable','off');
@@ -327,6 +385,7 @@ else
     if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
             |handles.checkbox4.Value|handles.checkbox5.Value)
         set(handles.edit19,'Enable','off');
+        set(handles.edit20,'Enable','off');
     end
 end
 % Update handles structure
@@ -347,6 +406,7 @@ if handles.checkbox3.Value  %handles.checkbx2
     set(handles.edit11,'Enable','on');
     set(handles.edit12,'Enable','on');
     set(handles.edit19,'Enable','on');
+    set(handles.edit20,'Enable','on');
 else
     set(handles.edit10,'Enable','off');
     set(handles.edit11,'Enable','off');
@@ -354,6 +414,7 @@ else
     if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
             |handles.checkbox4.Value|handles.checkbox5.Value)
         set(handles.edit19,'Enable','off');
+        set(handles.edit20,'Enable','off');
     end
 end
 % Update handles structure
@@ -372,6 +433,7 @@ if handles.checkbox4.Value  %handles.checkbx2
     set(handles.edit14,'Enable','on');
     set(handles.edit15,'Enable','on');
     set(handles.edit19,'Enable','on');
+    set(handles.edit20,'Enable','on');
 else
     set(handles.edit13,'Enable','off');
     set(handles.edit14,'Enable','off');
@@ -379,6 +441,7 @@ else
     if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
             |handles.checkbox4.Value|handles.checkbox5.Value)
         set(handles.edit19,'Enable','off');
+        set(handles.edit20,'Enable','off');
     end
 end
 % Update handles structure
@@ -399,6 +462,7 @@ if handles.checkbox5.Value  %handles.checkbx2
     set(handles.edit17,'Enable','on');
     set(handles.edit18,'Enable','on');
     set(handles.edit19,'Enable','on');
+    set(handles.edit20,'Enable','on');
 else
     set(handles.edit16,'Enable','off');
     set(handles.edit17,'Enable','off');
@@ -406,6 +470,7 @@ else
     if ~(handles.checkbox1.Value | handles.checkbox2.Value |handles.checkbox3.Value...
             |handles.checkbox4.Value|handles.checkbox5.Value)
         set(handles.edit19,'Enable','off');
+        set(handles.edit20,'Enable','off');
     end
 end
 % Update handles structure
@@ -790,6 +855,9 @@ set(handles.edit16,'Enable','off');
 set(handles.edit17,'Enable','off');
 set(handles.edit18,'Enable','off');
 
+set(handles.pushbutton6,'Enable','off');
+set(handles.pushbutton7,'Enable','off');
+
 
 
 % --- Executes on button press in pushbutton7.
@@ -843,3 +911,26 @@ end
 % Update handles structure
 guidata(hObject, handles);
 
+
+
+
+function edit20_Callback(hObject, eventdata, handles)
+% hObject    handle to edit20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit20 as text
+%        str2double(get(hObject,'String')) returns contents of edit20 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit20_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
