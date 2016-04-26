@@ -194,6 +194,7 @@ for  pp = 0:3;
                     is_stage_move = ones(numel(frame_diffs)+1, 1);
                     stage_locations = [];
                     movesI = [];
+                    success = 0;
                     break;
                 end
                 % subsample rate in calculating xShift,yShift, used as a threshold

@@ -259,7 +259,7 @@ try
 
         [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles);
         exit_flag = 73;
-        set(handles.text18,'string','The alignment is done successfully!');
+        set(handles.text18,'string',['The alignment is done successfully when wind_weights = ',num2str(wind_weights,'%.3f')]);
         set(handles.uitable1,'Data',movesI);
         if exist('ME')
             clear ME
@@ -289,7 +289,7 @@ try
                 'Chunksize', size(frame_diffs_d), 'Deflate', 5, 'Fletcher32', true, 'Shuffle', true)
             h5write(skeletons_file, '/stage_movement/frame_diffs', wind_weights);
             
-            set(handles.text18,'string','The alignment is done successfully!');
+            set(handles.text18,'string',['The alignment is done successfully when wind_weights = ',num2str(wind_weights,'%.3f')]);
                 % indicate movesI
             set(handles.uitable1,'Data',movesI);
         % stage_locations is still empty

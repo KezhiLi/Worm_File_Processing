@@ -485,10 +485,10 @@ while i < length(mediaTimes)
     % Advance.
     i = i + 1;
     
-    % debug purpose
-    if  i == 214
-        i
-    end
+%     % debug purpose
+%     if  i == 214
+%         i
+%     end
     
     %% switch movesI if necessary and update frameDiffs_cancel
     if i > 3;

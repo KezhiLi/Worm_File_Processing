@@ -138,11 +138,8 @@ h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_mat
 % 1. video2Diff differentiates a video frame by frame and outputs the
 % differential variance. We load these frame differences.
 frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
-% initialize return variables
 frame_diffs_d0 = frame_diffs_d;
-xyShift = [NaN, NaN];
 
-% check if stop button is pressed
     if terminated ==1
         return;
     end

@@ -850,45 +850,30 @@ set(handles.checkbox1,'Value',0);
 set(handles.edit4,'Enable','off');
 set(handles.edit5,'Enable','off');
 set(handles.edit6,'Enable','off');
-set(handles.edit4,'Value',0);
-set(handles.edit5,'Value',0);
-set(handles.edit6,'Value',0);
 
 set(handles.checkbox2,'Value',0);
 set(handles.edit7,'Enable','off');
 set(handles.edit8,'Enable','off');
 set(handles.edit9,'Enable','off');
-set(handles.edit7,'Value',0);
-set(handles.edit8,'Value',0);
-set(handles.edit9,'Value',0);
 
 set(handles.checkbox3,'Value',0);
 set(handles.edit10,'Enable','off');
 set(handles.edit11,'Enable','off');
 set(handles.edit12,'Enable','off');
-set(handles.edit10,'Value',0);
-set(handles.edit11,'Value',0);
-set(handles.edit12,'Value',0);
 
 set(handles.checkbox4,'Value',0);
 set(handles.edit13,'Enable','off');
 set(handles.edit14,'Enable','off');
 set(handles.edit15,'Enable','off');
-set(handles.edit13,'Value',0);
-set(handles.edit14,'Value',0);
-set(handles.edit15,'Value',0);
 
 set(handles.checkbox5,'Value',0);
 set(handles.edit16,'Enable','off');
 set(handles.edit17,'Enable','off');
 set(handles.edit18,'Enable','off');
-set(handles.edit16,'Value',0);
-set(handles.edit17,'Value',0);
-set(handles.edit18,'Value',0);
 
 set(handles.pushbutton6,'Enable','off');
 set(handles.pushbutton7,'Enable','off');
-set(handles.edit20,'Enable','off');
+
 
 
 % --- Executes on button press in pushbutton7.

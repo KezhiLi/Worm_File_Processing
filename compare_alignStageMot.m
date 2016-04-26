@@ -12,7 +12,7 @@ is_swimming = false;
 
 
 files = dir(main_dir);
-iif = 18; %1:numel(files)
+iif = 4; %1:numel(files)
 
 
 file = files(iif);
