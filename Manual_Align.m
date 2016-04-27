@@ -22,7 +22,7 @@ function varargout = Manual_Align(varargin)
 
 % Edit the above text to modify the response to help Manual_Align
 
-% Last Modified by GUIDE v2.5 22-Apr-2016 17:25:05
+% Last Modified by GUIDE v2.5 27-Apr-2016 16:17:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -493,18 +493,6 @@ end
 guidata(hObject, handles);
 
 
-
-
-
-function edit4_Callback(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit4 as text
-%        str2double(get(hObject,'String')) returns contents of edit4 as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit4_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit4 (see GCBO)
@@ -961,6 +949,127 @@ function edit20_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on mouse press over axes background.
+function axes1_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to axes1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% if strcmp( get(handles.figure1,'selectionType') , 'normal')
+%     disp('Left Click')
+% end
+if strcmp( get(handles.figure1,'selectionType') , 'open')
+    disp('Left Double Click')
+	%set(handles.text27,'string',['(',num2str(eventdata.IntersectionPoint(1)), num2str(eventdata.IntersectionPoint(2)),')']);
+    set(handles.text27,'string',['(',sprintf('%5.2f',eventdata.IntersectionPoint(1)),',',sprintf('%5.2f',eventdata.IntersectionPoint(2)),')']);
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function axes1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to axes1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate axes1
+set (gcf, 'WindowButtonMotionFcn', @mouseMove);
+
+
+function mouseMove (hObject, eventdata, handles)
+C = get (gca, 'CurrentPoint');
+x_cord = num2str(C(1,1));
+y_cord = num2str(C(1,2));
+title(gca, [ '\fontsize{9}(X,Y) = (',x_cord, ', ',y_cord, ')'],'Position', [0.4 1]);
+
+
+
+function edit4_Callback(hObject, eventdata, handles)
+% hObject    handle to edit20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit20 as text
+%        str2double(get(hObject,'String')) returns contents of edit20 as a double
+
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over edit4.
+function edit4_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to edit4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+disp('Left Click Edit')
+cord_xy = get(handles.text27,'string');
+[cord_x, cord_y] = strtok(cord_xy, '(,');
+
+%set(handles.text27,'string',['(',num2str(eventdata.IntersectionPoint(1)), num2str(eventdata.IntersectionPoint(2)),')']);
+set(handles.text27,'string',['(',sprintf('%5.2f',eventdata.IntersectionPoint(1)),',',sprintf('%5.2f',eventdata.IntersectionPoint(2)),')']);
+
+
+
+% --- Executes on selection change in popupmenu1.
+function popupmenu1_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu1
+pop_cont = get(hObject,'Value');
+
+disp('Left Click Edit')
+cord_xy = get(handles.text27,'string');
+[cord_x, rem] = strtok(cord_xy, '(,');
+[cord_y, rem2] = strtok(rem, ',)');
+
+
+switch pop_cont
+    case 2
+        set(handles.edit4,'string',cord_x);
+    case 3
+        set(handles.edit5,'string',cord_x);
+        set(handles.edit6,'string',cord_y);
+    case 4
+        set(handles.edit7,'string',cord_x);
+    case 5
+        set(handles.edit8,'string',cord_x);
+        set(handles.edit9,'string',cord_y);
+    case 6
+        set(handles.edit10,'string',cord_x);
+    case 7
+        set(handles.edit11,'string',cord_x);
+        set(handles.edit12,'string',cord_y);
+    case 8
+        set(handles.edit13,'string',cord_x);
+    case 9
+        set(handles.edit14,'string',cord_x);
+        set(handles.edit15,'string',cord_y);
+    case 10
+        set(handles.edit16,'string',cord_x);
+    case 11
+        set(handles.edit17,'string',cord_x);
+        set(handles.edit18,'string',cord_y);
+    otherwise
+        set(handles.text18,'string','nothing is copied to text box');
+end
+
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

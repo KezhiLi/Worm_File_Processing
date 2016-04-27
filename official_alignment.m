@@ -35,7 +35,7 @@ is_swimming = false;
 
 
 files = dir(main_dir);
-for iif = 37:numel(files);     
+for iif = 1:numel(files);     
     % bad files: 
     % agar_2: 6(1),18(2),29(2,3,fail), 36(?,);
     % agar_1: 6(4,fail), 9(1), 26(5), 29(,)

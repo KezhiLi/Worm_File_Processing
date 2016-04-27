@@ -12,7 +12,7 @@ is_swimming = false;
 
 
 files = dir(main_dir);
-iif = 4; %1:numel(files)
+iif = 7; %1:numel(files)
 
 
 file = files(iif);
@@ -22,20 +22,20 @@ masked_image_file = fullfile(main_dir, file.name);
 skeletons_file = fullfile(results_dir, strrep(file.name, '.hdf5', '_skeletons.hdf5'));
 features_mat = fullfile(feat_dir, strrep(file.name, '.hdf5', '_features.mat'));
 
-%stage_vec1 = h5read(skeletons_file, '/stage_movement/stage_vec');
-stage_vec2 = h5read(skeletons_file, '/stage_movement2/stage_vec2');
+stage_vec1 = h5read(skeletons_file, '/stage_movement/stage_vec');
+%stage_vec2 = h5read(skeletons_file, '/stage_movement2/stage_vec2');
 
-%is_stage_move1 = h5read(skeletons_file, '/stage_movement/is_stage_move');
-is_stage_move2 = h5read(skeletons_file, '/stage_movement2/is_stage_move2');
+is_stage_move1 = h5read(skeletons_file, '/stage_movement/is_stage_move');
+%is_stage_move2 = h5read(skeletons_file, '/stage_movement2/is_stage_move2');
 
-rotation_matrix = h5readatt(skeletons_file, '/stage_movement2' ,'rotation_matrix');
-pixelPerMicronScale = h5readatt(skeletons_file, '/stage_movement2','pixel_per_micron_scale');
-frame_diffs_d = h5read(skeletons_file, '/stage_movement2/frame_diffs2');
+rotation_matrix = h5readatt(skeletons_file, '/stage_movement' ,'rotation_matrix');
+pixelPerMicronScale = h5readatt(skeletons_file, '/stage_movement','pixel_per_micron_scale');
+frame_diffs_d = h5read(skeletons_file, '/stage_movement/frame_diffs');
 
 %stage_vec_abs = sqrt(stage_vec1(1,:).^2+stage_vec1(2,:).^2);
 %stage_vec2_abs = sqrt(stage_vec2(1,:).^2+stage_vec2(2,:).^2);
 
-figure,plot([0,frame_diffs_d/max(frame_diffs_d)*4]); hold on, plot( is_stage_move2);
+figure,plot([0,frame_diffs_d/max(frame_diffs_d)*4]); hold on, plot( is_stage_move1);
 
 %vec_diff1 =stage_vec1(1,:)-stage_vec2(1,:);
 %vec_diff2 =stage_vec1(2,:)-stage_vec2(2,:);
@@ -47,8 +47,8 @@ figure,plot([0,frame_diffs_d/max(frame_diffs_d)*4]); hold on, plot( is_stage_mov
 
 %%
 %
-is_stage_move_d = is_stage_move2;
-stage_vec_d = stage_vec2;
+is_stage_move_d = is_stage_move1;
+stage_vec_d = stage_vec1;
 
 load(features_mat)
 seg_motion = info.video.annotations.frames==2;
