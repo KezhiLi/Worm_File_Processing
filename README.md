@@ -58,8 +58,8 @@ The Worm Alignement consists of 4 steps:
   - `is_stage_move` a binary vector to tell if one frame belongs stage motion, the same as explained in step 2
   - `has_finished` it is `exit_flag`, means
       - `1` find stage motion smoothly
-      - `80` the timestamp is corrupt or do not exist
-      - `81` number of timestamps do not match the number read movie frames
+      - `80` the timestamp is corrupted or does not exist
+      - `81` number of timestamps does not match the number read movie frames
       - `82` cannot find stage motion smoothly in the basic algorithm, then it can be changed to other numbers:
         - `70` find stage motion smoothly in the advanced algorithm
         - `71` still cannot find stage motion in the advanced algorithm
