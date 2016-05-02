@@ -1,4 +1,4 @@
-function [frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles)
+function [frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles, eventdata)
 % 
 % Alignment function used in GUI
 % firstly the function will run the basic alignment alogirhtm based on
@@ -203,7 +203,7 @@ for  pp = 0:3;
         % indicate frame_diffs
         plot(frame_diffs(1:min(1000,length(frame_diffs))),'parent',handles.axes1);
         
-        [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles);
+        [is_stage_move, movesI, stage_locations] = findStageMovement_gs_GUI(frame_diffs, mediaTimes, locations, delay_frames, fps, wind_weights, hObject, handles, eventdata);
         exit_flag = 1;
         if ~isempty(stage_locations)
             disp(['Finally successful when wind_weights = ',num2str(wind_weights,'%.3f')])

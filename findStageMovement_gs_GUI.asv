@@ -1,5 +1,5 @@
 function [frames, movesI, locations] = ...
-    findStageMovement_gs_GUI(frameDiffs, mediaTimes, locations, delayFrames, fps, wind_weights, hObject, handles, eventdata)
+    findStageMovement_gs_GUI(frameDiffs, mediaTimes, locations, delayFrames, fps, wind_weights, hObject, handles)
 % Gui function is modified accordingly in Apr. 2016
 
 % Add Gaussian window, frameDiffs_cancel (cancel the previous peak), 
@@ -485,8 +485,8 @@ while i < length(mediaTimes)
     % Advance.
     i = i + 1;
     
-%     % debug purpose
-%     if  i == 1326
+    % debug purpose
+%     if  i == 55
 %         i
 %     end
     
@@ -1011,7 +1011,6 @@ while i < length(mediaTimes)
             if ~verbose
                 set(handles.pushbutton3,'Enable','on');
                 set(handles.text18,'string',['An error is founded here, but it may be fixed! Please modify frameDiffs manually, and then click `Continue` to finish the alignment. msg: ', msg]);
-                
                 uiwait(gcf)
                 set(handles.text18,'string','continuing, please wait');
                 error(id, msg);
@@ -1514,9 +1513,3 @@ if verbose
     end
 end
 %end
-
-function mouseMove (hObject, eventdata, handles)
-C = get (gca, 'CurrentPoint');
-x_cord = num2str(C(1,1));
-y_cord = num2str(C(1,2));
-title(gca, [ '\fontsize{9}(X,Y) = (',x_cord, ', ',y_cord, ')'],'Position', [0.4 1]);

@@ -98,7 +98,7 @@ set(handles.checkbox5,'Enable','on');
 drawnow()
 
 % main function to do the alignment
-[frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles);
+[frame_diffs_d0,xyShift] = Gui_Align_main(hObject, handles, eventdata);
 
 handles.frame_diffs_d0 = frame_diffs_d0;
 handles.xyShift = xyShift;
@@ -107,14 +107,6 @@ guidata(hObject, handles);
 
 set(handles.pushbutton6,'Enable','on');
 set(handles.pushbutton7,'Enable','on');
-
-
-
-
-
-
-
-
 
 
 % --- Executes on button press in pushbutton2.
