@@ -61,9 +61,9 @@ The Worm Alignement consists of 4 steps:
       - `80` the timestamp is corrupted or does not exist
       - `81` number of timestamps does not match the number read movie frames
       - `82` cannot find stage motion smoothly in the basic algorithm, then it can be changed to other numbers:
-        - `70` find stage motion smoothly in the advanced algorithm
-        - `71` still cannot find stage motion in the advanced algorithm
-        - `72` hdf5 and skeleton has different numbers of frames
+        - `2` find stage motion smoothly in the advanced algorithm
+        - `71` hdf5 and skeleton has different numbers of frames
+        - `72` still cannot find stage motion in the advanced algorithm
   - `fps` frame rate
   - `delay_frames` most number of frames that a delay can happen
   - `pixel_per_micron_scale` pixel per micron that can be used for converting pixel value to microns value and vise versa.
