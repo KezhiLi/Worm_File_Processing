@@ -29,6 +29,13 @@ for iif = 1:numel(ini_loc);
     
     % set current file and result hdf5 file
     result_file = strtrim(file_name{iif});
+    cur_file = strrep(result_file,'_skeletons.hdf5', '.hdf5');
+    cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+    
+%     cur_file = strtrim(file_name{iif});
+%     cur_file_now = cur_file;
+%     result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results');
+%     result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
 %     
 %     % use MaskedVideos_old here
 %     %cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
@@ -40,8 +47,7 @@ for iif = 1:numel(ini_loc);
 %     result_file = result_file0;
 %     %result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
     
-    cur_file = strrep(result_file,'_skeletons.hdf5', '.hdf5');
-    cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+
     
     % show the progress
     fprintf('%i/%i) %s\n', iif, numel(ini_loc),cur_file_now)
@@ -53,14 +59,14 @@ for iif = 1:numel(ini_loc);
         skeletons_file = strrep(result_file,gap_sym,'Z:');
         fprintf('%i) %s\n', iif, masked_image_file)
         video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
-        if video_timestamp_time(end)> 60*61;
-            skip_file = [ skip_file; iif];
-            % 
-             fileID = fopen('stage_long_files.txt','a');
-             fprintf(fileID,'%s ',cur_file);
-             fclose(fileID);
-            continue;
-        end
+%         if video_timestamp_time(end)> 60*61;
+%             skip_file = [ skip_file; iif];
+%             % 
+%              fileID = fopen('stage_long_files.txt','a');
+%              fprintf(fileID,'%s ',cur_file);
+%              fclose(fileID);
+%             continue;
+%         end
         try
             % record if it successes, 0 or 1
             

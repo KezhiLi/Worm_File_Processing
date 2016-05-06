@@ -26,11 +26,11 @@ cur_file = get(handles.edit1,'String');
 
 gap_sym = '\Volumes\behavgenom_archive$';
 
-% cur_file_now = cur_file strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
-% result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+% cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+% result_file = strrep(cur_file, '.hdf5','_skeletons.hdf5');
 
 cur_file_now = cur_file;
-result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results_old');
+result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results');
 result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
 
 % change group folder name to Z:
@@ -137,7 +137,16 @@ h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_mat
 % Ev's code uses the full vectors without dropping frames
 % 1. video2Diff differentiates a video frame by frame and outputs the
 % differential variance. We load these frame differences.
-frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
+if isfield(handles, 'frame_diffs_d0')
+    if ~isempty(handles.frame_diffs_d0)
+        frame_diffs_d = handles.frame_diffs_d0;
+    else
+        frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
+    end
+else
+    frame_diffs_d = getFrameDiffVar_gui(masked_image_file,hObject, handles)';
+end
+
 % initialize return variables
 frame_diffs_d0 = frame_diffs_d;
 xyShift = [NaN, NaN];
@@ -178,7 +187,8 @@ if numel(frame_diffs_d) ~= numel(dd)
     h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
     return
 end
-frame_diffs(dd) = frame_diffs_d;
+%if H5L.exists(fid,'/stage_movement','H5P_DEFAULT')
+    frame_diffs(dd) = frame_diffs_d;
 
 stage_locations =[];
 
@@ -187,7 +197,7 @@ stage_locations =[];
     set(handles.edit20,'string',num2str(delay_frames));   
     
 %% try to run the aligment and return empty data if it fails
-for  pp = 0:3;
+for  pp = 0:1;
     
 
     % increase window weights in every loop. when win_weights = 0, it is
@@ -255,12 +265,20 @@ for  pp = 0:3;
                 diff_mask_central = [trajectories_data.cnt_coord_x(2:end)-trajectories_data.cnt_coord_x(1:end-1),...
                     trajectories_data.cnt_coord_y(2:end)-trajectories_data.cnt_coord_y(1:end-1)];
                 diff_mask_central_abs = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
+                if isfield(handles, 'xyShift')
+                    if ~isempty(handles.xyShift)
+                        xyShift = handles.xyShift;
+                    else
+                        [xShift, yShift] = shiftCrossCorrelation_gui(masked_image_file, hObject, handles);
+                    end
+                else
                 % %calculate shift from cross correlation between frames, and get the absolute difference between images
                 [xShift, yShift] = shiftCrossCorrelation_gui(masked_image_file, hObject, handles);
-                    if terminated ==1
-                        return;
-                    end
                 xyShift = [xShift, yShift];
+                end
+                if terminated ==1
+                        return;
+                end
                 
                 % check if the number of frames
                 if size(diff_mask_central_abs)~=length(xShift)
@@ -320,7 +338,7 @@ for  pp = 0:3;
                 end
                 frame_diffs(dd) = frame_diffs_d;
             % elseif it is in the 3rd(final) loop, and still cannot find an answer    
-            elseif pp == 3
+            elseif pp == 1
                 %%
                 % exit_flag = 71 means alignment errors still exist after
                 % running the new function

@@ -86,6 +86,8 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 
 terminated =0;
 
+set (gcf, 'WindowButtonMotionFcn', @mouseMove);
+
 set(handles.text18,'string','processing, please wait');
 set(handles.pushbutton1,'Enable','on');
 set(handles.pushbutton2,'Enable','on');
@@ -105,9 +107,12 @@ handles.xyShift = xyShift;
 
 guidata(hObject, handles);
 
+set(handles.axes1,'ButtonDownFcn',{@axes1_ButtonDownFcn,handles});
+    
 set(handles.pushbutton6,'Enable','on');
 set(handles.pushbutton7,'Enable','on');
-
+% fh = handles.axes1;
+% set (gcf, 'WindowButtonMotionFcn', @mouseMove)
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
@@ -201,9 +206,9 @@ if handles.edit2.Enable & handles.edit3.Enable
     catch ME
         disp('The file list to read is not correct.');
         % change '/' to '\' due to the difference between python and matlab
-        failed_files_all = strrep(fileread('bad_files.txt'),'/','\');
+        failed_files_all = strrep(fileread('stage_bad_files.txt'),'/','\');
         % indicate otsuThr
-        set(handles.edit3,'string','bad_files.txt');
+        set(handles.edit3,'string','stage_bad_files.txt');
     end
     % replace folder
     gap_sym = '\Volumes\behavgenom_archive$';
@@ -878,6 +883,7 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 Gui_Align_rerun(hObject, handles);
+set (gcf, 'WindowButtonMotionFcn', @mouseMove)
 
 
 
@@ -956,11 +962,14 @@ function axes1_ButtonDownFcn(hObject, eventdata, handles)
 % if strcmp( get(handles.figure1,'selectionType') , 'normal')
 %     disp('Left Click')
 % end
+      
 if strcmp( get(handles.figure1,'selectionType') , 'open')
-    disp('Left Double Click')
-	%set(handles.text27,'string',['(',num2str(eventdata.IntersectionPoint(1)), num2str(eventdata.IntersectionPoint(2)),')']);
-    set(handles.text27,'string',['(',sprintf('%5.2f',eventdata.IntersectionPoint(1)),',',sprintf('%5.2f',eventdata.IntersectionPoint(2)),')']);
+%     disp('Left Double Click')
+     set(handles.text27,'string',['(',sprintf('%0.0f',eventdata.IntersectionPoint(1)),',',sprintf('%0.2f',eventdata.IntersectionPoint(2)),')']);
+% elseif strcmp( get(handles.figure1,'selectionType') , 'normal')
+%     disp('Left Single Click')
 end
+%set(hObject,'buttondownfcn',{@axes1_ButtonDownFcn,handles})
 
 
 % --- Executes during object creation, after setting all properties.
@@ -974,10 +983,13 @@ set (gcf, 'WindowButtonMotionFcn', @mouseMove);
 
 
 function mouseMove (hObject, eventdata, handles)
-C = get (gca, 'CurrentPoint');
+C = round(get (gca, 'CurrentPoint')*100)/100;
 x_cord = num2str(C(1,1));
 y_cord = num2str(C(1,2));
-title(gca, [ '\fontsize{9}(X,Y) = (',x_cord, ', ',y_cord, ')'],'Position', [0.4 1]);
+set(gca,'Title',text('String',[ '(X,Y) = (',x_cord, ', ',y_cord, ')']),'FontSize',9);
+%disp( [ '(X,Y) = (',x_cord, ', ',y_cord, ')']);
+
+
 
 
 
@@ -998,12 +1010,12 @@ function edit4_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-disp('Left Click Edit')
-cord_xy = get(handles.text27,'string');
-[cord_x, cord_y] = strtok(cord_xy, '(,');
-
-%set(handles.text27,'string',['(',num2str(eventdata.IntersectionPoint(1)), num2str(eventdata.IntersectionPoint(2)),')']);
-set(handles.text27,'string',['(',sprintf('%5.2f',eventdata.IntersectionPoint(1)),',',sprintf('%5.2f',eventdata.IntersectionPoint(2)),')']);
+% disp('Left Click Edit')
+% cord_xy = get(handles.text27,'string');
+% [cord_x, cord_y] = strtok(cord_xy, '(,');
+% 
+% %set(handles.text27,'string',['(',num2str(eventdata.IntersectionPoint(1)), num2str(eventdata.IntersectionPoint(2)),')']);
+% set(handles.text27,'string',['(',sprintf('%5.2f',eventdata.IntersectionPoint(1)),',',sprintf('%5.2f',eventdata.IntersectionPoint(2)),')']);
 
 
 
@@ -1017,7 +1029,6 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from popupmenu1
 pop_cont = get(hObject,'Value');
 
-disp('Left Click Edit')
 cord_xy = get(handles.text27,'string');
 [cord_x, rem] = strtok(cord_xy, '(,');
 [cord_y, rem2] = strtok(rem, ',)');

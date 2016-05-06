@@ -165,7 +165,7 @@ for  pp = 0:3;
             disp(['Finally successful when wind_weights = ',num2str(wind_weights,'%.3f')])
             % exit_flag = 70 means alignment problem solved by using new
             % 'frame)diffs' and 'wind_weights'
-            exit_flag = 70;
+            exit_flag = 2;
             warning('Return non-NaN stage vector. Exiting with has_finished flag %i', exit_flag);
             % write exit_flag to file
             h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag));
@@ -189,7 +189,7 @@ for  pp = 0:3;
                 % check if the number of frames
                 if size(diff_mask_central_abs)~=length(xShift)
                     disp('hdf5 and skeleton has different numbers of frames');%: hdf5: %d, skeleton: %d', length(xShift)+1,size(diff_mask_central_abs)+1);
-                    exit_flag = 72;
+                    exit_flag = 71;
                     %remove the if we want to create an empty
                     is_stage_move = ones(numel(frame_diffs)+1, 1);
                     stage_locations = [];
@@ -249,7 +249,7 @@ for  pp = 0:3;
                 %%
                 % exit_flag = 71 means alignment errors still exist after
                 % running the new function
-                exit_flag = 71;
+                exit_flag = 72;
                 warning('Returning all nan stage vector after adjustion. Exiting with has_finished flag %i', exit_flag)
                 h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
                 

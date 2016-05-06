@@ -32,10 +32,13 @@ cur_file = get(handles.edit1,'String');
 
 gap_sym = '\Volumes\behavgenom_archive$';
 
-cur_file_now = cur_file; % strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
-%result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
-result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results_old');
-result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
+% cur_file_now = cur_file; % strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
+% %result_file0 = strrep(cur_file_now, 'MaskedVideos_old', 'Results_old');
+% result_file0 = strrep(cur_file_now, 'MaskedVideos', 'Results_old');
+% result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
+
+cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+result_file = strrep(cur_file, '.hdf5','_skeletons.hdf5');
 
 % change group folder name to Z:
 masked_image_file = strrep(cur_file_now,gap_sym,'Z:');

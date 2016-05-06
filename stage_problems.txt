@@ -5,7 +5,6 @@
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/08-03-11/300 LSJ1 on food L_2011_03_08__16_28_05___2___11_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/08-03-11/399 CB4956 on food R_2011_03_08__17_02_24___2___13_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/07-03-11/883 RC301 on food R_2011_03_07__15_57_59___2___11_skeletons.hdf5
-/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/09-03-11/532 CB4853 swiming_2011_03_09__17_29_11___2___13_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/30-03-11/764 ED3049 on food L_2011_03_30__16_30_19___2___11_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/17-02-11/343 ED3021 on food R_2011_02_17__13_05_53___2___9_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/26-11-10/343 ED3021 on food R_2010_11_26__11_34_13___2___4_skeletons.hdf5
@@ -63,7 +62,6 @@
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/from pc207-12/misc_videos/robyn dvd/2/N2 Kate on food R_2011_08_03__15_44_56__2_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/from pc207-12/misc_videos/robyn dvd/1/clh-3 (ok768) on food R_2011_06_07__13_24_29___6___9_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/from pc207-12/misc_videos/robyn dvd/1/AQ1062 on food R_2011_06_14__16_06_11___6___13_skeletons.hdf5
-/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-12/Andre/22-02-11/N2 swimmng_2011_02_22__12_41_05___6___2_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-12/Andre/25-11-10/N2 on food L_2010_11_25__12_13_26___6___3_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-12/Andre/25-11-10/300 LS51 on food R_2010_11_25__17_00_59___6___10_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-12/Andre/25-11-10/883 RC301 on food L_2010_11_25__12_49_03___6___5_skeletons.hdf5
@@ -85,7 +83,6 @@
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/25-11-10/575 JU440 on food L_2010_11_25__11_38_16___7___1_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/24-02-11/371 JU402 on food R_2011_02_24__16_39_21___7___9_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/28-03-11/764 ED3049 wimming_2011_03_28__13_09_19___7___4_skeletons.hdf5
-/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/03-03-11/764 ED3049 swiming_2011_03_03__17_17_14___7___12_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/03-03-11/431 JU298 on food R_2011_03_03__16_20_09___7___9_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/03-03-11/883 RC301 on food R_2011_03_03__11_56_25___7___3_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/17-02-11/N2 on food L_2011_02_17__13_14_42___7___8_skeletons.hdf5

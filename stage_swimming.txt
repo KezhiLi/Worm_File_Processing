@@ -1,4 +1,6 @@
-
+/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-16/Andre/03-03-11/764 ED3049 swiming_2011_03_03__17_17_14___7___12_skeletons.hdf5
+/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc220-7/!worm_videos/copied from pc207-12/Andre/22-02-11/N2 swimmng_2011_02_22__12_41_05___6___2_skeletons.hdf5
+/Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/09-03-11/532 CB4853 swiming_2011_03_09__17_29_11___2___13_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/22-02-11/532 CB4853 swimming_2011_02_22__15_14_18___2___7_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/22-02-11/655 JU394 swimming_2011_02_22__12_33_56___2___2_skeletons.hdf5
 /Volumes/behavgenom_archive$/Results/nas207-1/experimentBackup/from pc207-18/!worm_videos/copied from pc207-15/Andre/22-02-11/N2 swimming_2011_02_22__15_55_18___2___9_skeletons.hdf5

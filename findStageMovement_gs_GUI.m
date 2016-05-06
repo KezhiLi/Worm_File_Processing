@@ -496,7 +496,7 @@ while i < length(mediaTimes)
         ave_interval = median(movesI(nonan_movesI,2)-movesI(nonan_movesI,1));
         % check if the start-end interval is switched
         if movesI(i-2,1)>movesI(i-2,2)
-           disp([i-2,movesI(i-2,1),movesI(i-2,2)])
+           %disp([i-2,movesI(i-2,1),movesI(i-2,2)])
            temp_i2 = movesI(i-2,1);
            movesI(i-2,1) = movesI(i-2,2)-1;
            movesI(i-2,2) = temp_i2+1;
@@ -547,6 +547,9 @@ while i < length(mediaTimes)
     plot([endI,endI],[0,0.5],'--gs','LineWidth',2,'parent',handles.axes1);
     hold(handles.axes1,'off') 
     drawnow()
+    
+    % 
+%    set(get(handles.axes1,'Children'),'ButtonDownFcn',@axes1_ButtonDownFcn);
     
     %%
     % Is the Otsu threshold large enough?
@@ -1012,8 +1015,10 @@ while i < length(mediaTimes)
                 set(handles.pushbutton3,'Enable','on');
                 set(handles.text18,'string',['An error is founded here, but it may be fixed! Please modify frameDiffs manually, and then click `Continue` to finish the alignment. msg: ', msg]);
                 
-                uiwait(gcf)
-                set(handles.text18,'string','continuing, please wait');
+%                uiwait(gcf)
+
+                
+%                set(handles.text18,'string','continuing, please wait');
                 error(id, msg);
                 
             % Report the warning.
@@ -1514,9 +1519,3 @@ if verbose
     end
 end
 %end
-
-function mouseMove (hObject, eventdata, handles)
-C = get (gca, 'CurrentPoint');
-x_cord = num2str(C(1,1));
-y_cord = num2str(C(1,2));
-title(gca, [ '\fontsize{9}(X,Y) = (',x_cord, ', ',y_cord, ')'],'Position', [0.4 1]);
