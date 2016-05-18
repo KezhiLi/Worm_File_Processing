@@ -69,4 +69,6 @@ The Worm Alignement consists of 4 steps:
   - `pixel_per_micron_scale` pixel per micron that can be used for converting pixel value to microns value and vise versa.
   - `rotation_matrix` compensate the rotation error in calibration
 
-**Interface that adjust the alignment manually:** we also generate a user-interface to users to adjust the alignment manually when the automatic alignment step fails. The key parameter
+**Interface that adjust the alignment manually:** we also generate a user-interface to users to adjust the alignment manually when the automatic alignment step fails. The main interface looks like the one below, and the key panel is 'Manually moidfy frameDiffs'.
+
+ ![frame_diffs](https://github.com/KezhiLi/Worm_File_Processing/blob/master/Manual_interface.png)
