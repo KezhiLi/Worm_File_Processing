@@ -81,7 +81,7 @@ The Worm Alignement consists of 4 steps:
     4)  the time stamp is not wrong (the length of the video can be seen clearly)
     5)  the video is not too short
 
-Otherwise the video cannot be modified manually correctly.
+   Otherwise the video cannot be modified manually correctly.
 
 2.  Afterwards, the button `Run` is available and the user is supposed to click it to run the alignment process automatically. The program will calculate the necessary vector regarding variance of difference of pixels, and then it will link the vector to corresponding stage motion data in order to build the alignment. The process goes until a problem occurs. Then the user can enable the `Manually modify frameDiffs` panel to modify the blue curves in figure `frameDiffs`. The objective is giving each a red peak a blue peak accordingly. The method is observing `movesI` matrix that records the start/end points of each peak, and 3 figures in the interface. 
 
