@@ -68,3 +68,5 @@ The Worm Alignement consists of 4 steps:
   - `delay_frames` most number of frames that a delay can happen
   - `pixel_per_micron_scale` pixel per micron that can be used for converting pixel value to microns value and vise versa.
   - `rotation_matrix` compensate the rotation error in calibration
+
+**Interface that adjust the alignment manually:** we also generate a user-interface to users to adjust the alignment manually when the automatic alignment step fails. The key parameter
