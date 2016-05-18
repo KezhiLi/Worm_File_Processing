@@ -75,14 +75,14 @@ The Worm Alignement consists of 4 steps:
 
 1.  Before processing the video, the file name should be set correctly. The file name is read from a file list `stage_bad_files.txt` by default, and it can be changed accordingly. Video index shows the index number of the current file in the txt file, and its value can be modified directly. Once `file list` and `Video index` are set correctly, the user can click `Watch video` to open the `.avi` file to watch the video. When watching the `.avi` file, the user should be make sure that the video satisies the following conditions:
   
-    1)  the video is an `on food` video but no a `swimming` video.
-    2)  the video should be good from beginning to the end, no apprent mistakes, and the stage is alway focusing on the worm. 
-    3)  there is always 1 worm in the scope (for single worm case)
-    4)  the time stamp is not wrong (the length of the video can be seen clearly)
-    5)  the video is not too short
+   - 1)  the video is an `on food` video but no a `swimming` video.
+   - 2)  the video should be good from beginning to the end, no apprent mistakes, and the stage is alway focusing on the worm. 
+   - 3)  there is always 1 worm in the scope (for single worm case)
+   - 4)  the time stamp is not wrong (the length of the video can be seen clearly)
+   - 5)  the video is not too short
 
    Otherwise the video cannot be modified manually correctly.
 
 2.  Afterwards, the button `Run` is available and the user is supposed to click it to run the alignment process automatically. The program will calculate the necessary vector regarding variance of difference of pixels, and then it will link the vector to corresponding stage motion data in order to build the alignment. The process goes until a problem occurs. Then the user can enable the `Manually modify frameDiffs` panel to modify the blue curves in figure `frameDiffs`. The objective is giving each a red peak a blue peak accordingly. The method is observing `movesI` matrix that records the start/end points of each peak, and 3 figures in the interface. 
 
-The key parameter is `weights`. It can be a value between 0 to 1. `weights` = 0 means that it uses the original frameDiffs. When `weights` =1, it means we use the frameDiffs after a Gaussian filter that emphasize the central part and suppress both edges. In this case the algorithm can deal with some large noises and find the right peak more easily if the peak emerges at the right location.  
+  The key parameter is `weights`. It can be a value between 0 to 1. `weights` = 0 means that it uses the original frameDiffs. When `weights` =1, it means we use the frameDiffs after a Gaussian filter that emphasize the central part and suppress both edges. In this case the algorithm can deal with some large noises and find the right peak more easily if the peak emerges at the right location.  
