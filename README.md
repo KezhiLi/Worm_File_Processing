@@ -72,3 +72,7 @@ The Worm Alignement consists of 4 steps:
 **Interface that adjust the alignment manually:** we also generate a user-interface to users to adjust the alignment manually when the automatic alignment step fails. The main interface looks like the one below, and the key panel is 'Manually moidfy frameDiffs'.
 
  ![frame_diffs](https://github.com/KezhiLi/Worm_File_Processing/blob/master/Manual_interface.png)
+
+1.  Before processing the video, the file name should be set correctly. The file name is read from a file list `stage_bad_files.txt` by default, and it can be changed accordingly. Video index shows the index number of the current file in the txt file, and its value can be modified directly. Once `file list` and `Video index` are set correctly, the user can click `Watch video` to open the `.avi` file to watch the video. The user needs to make sure that the video is an `on food` video but no a `swimming` video. In addition, the video should be good from beginning to the end, no apprent mistakes, and the stage is alway focusing on the worm. 
+
+2.  
