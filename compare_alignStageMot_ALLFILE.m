@@ -34,7 +34,7 @@ skeletons_file = strrep(strrep(cur_file, '.hdf5', '_skeletons.hdf5'),'MaskedVide
 % features_mat = fullfile(strrep(cur_file, '.hdf5', '_features.mat'));
 
 time_ske = h5read(skeletons_file,'/timestamp/time');
-stage_data = h5read(masked_image_file, '/stage_data');
+stage_data = h5read(masked_image_file, '/stage_log');
 mediaTimes = stage_data.stage_time';%*60;
 ii =1;
 while ii == 1;

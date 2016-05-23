@@ -99,7 +99,7 @@ frame_diffs_d = getFrameDiffVar_fast(masked_image_file)';
 % 1) to the media times in this log file. Therefore, we load these media
 % times and stage locations.
 %from the .log.csv file
-stage_data = h5read(masked_image_file, '/stage_data');
+stage_data = h5read(masked_image_file, '/stage_log');
 mediaTimes = stage_data.stage_time';
 locations = [stage_data.stage_x , stage_data.stage_y];
 
