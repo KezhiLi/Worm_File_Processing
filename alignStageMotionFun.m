@@ -77,12 +77,13 @@ delay_time = str2double(delay_str) / 1000;
 delay_frames = ceil(delay_time * fps);
 
 %% Read the scale conversions, we would need this when we want to convert the pixels into microns
-[pixelPerMicronScale, rotation_matrix]=PixelMicronScale(masked_image_file)
+[MicronPerPixelScale, rotation_matrix]=PixelMicronScale(masked_image_file);
 
 %% save appropiated attributes into the hdf5
 h5writeatt(skeletons_file, '/stage_movement', 'fps', fps)
 h5writeatt(skeletons_file, '/stage_movement', 'delay_frames', delay_frames)
-h5writeatt(skeletons_file , '/stage_movement',  'pixel_per_micron_scale',  pixelPerMicronScale)
+%h5writeatt(skeletons_file , '/stage_movement',  'pixel_per_micron_scale',  pixelPerMicronScale)  microns_per_pixel_scale
+h5writeatt(skeletons_file , '/stage_movement',  'microns_per_pixel_scale',  MicronPerPixelScale)
 h5writeatt(skeletons_file , '/stage_movement',  'rotation_matrix',  rotation_matrix)
 
 %% calculate the variance of the difference between frames

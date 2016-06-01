@@ -107,7 +107,7 @@ for iif = 37:numel(files);
         pixelPerMicronY = 1/h5readatt(masked_image_file, '/mask', 'pixels2microns_y');
         
         normScale = sqrt((pixelPerMicronX ^ 2 + pixelPerMicronX ^ 2) / 2);
-        pixelPerMicronScale =  normScale * [sign(pixelPerMicronX) sign(pixelPerMicronY)];
+        MicronPerPixelScale =  normScale * [sign(pixelPerMicronX) sign(pixelPerMicronY)];
 
         % Compute the rotation matrix.
         %rotation = 1;
@@ -292,7 +292,7 @@ for iif = 37:numel(files);
         
         h5writeatt(skeletons_file, '/stage_movement2', 'fps', fps)
         h5writeatt(skeletons_file, '/stage_movement2', 'delay_frames', delay_frames)
-        h5writeatt(skeletons_file, '/stage_movement2',  'pixel_per_micron_scale',  pixelPerMicronScale)
+        h5writeatt(skeletons_file, '/stage_movement2',  'microns_per_pixel_scale',  MicronPerPixelScale)
         h5writeatt(skeletons_file, '/stage_movement2',  'rotation_matrix',  rotation_matrix)
         
     end

@@ -4,7 +4,7 @@
 
 
 % change '/' to '\' due to the difference between python and matlab
-failed_files_all = strrep(fileread('stage_problems.txt'),'/','\');
+failed_files_all = strrep(fileread('stage_long_files.txt'),'/','\');
 % replace folder
 gap_sym = '\Volumes\behavgenom_archive$';
 
@@ -27,12 +27,12 @@ skip_file = [];
 % loop goes through all files in txt
 for iif = 1:numel(ini_loc);     
     
-    % set current file and result hdf5 file
-    result_file = strtrim(file_name{iif});
-    cur_file = strrep(result_file,'_skeletons.hdf5', '.hdf5');
-    cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
-    
-    %     
+%     % set current file and result hdf5 file
+%     result_file = strtrim(file_name{iif});
+%     cur_file = strrep(result_file,'_skeletons.hdf5', '.hdf5');
+%     cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+%     
+%     %     
 %     % use MaskedVideos_old here
 %     %cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
 %     cur_file_now = strrep(cur_file, 'MaskedVideos', 'MaskedVideos_old');
@@ -43,9 +43,9 @@ for iif = 1:numel(ini_loc);
 %     result_file = result_file0;
 %     %result_file = strrep(result_file0, '.hdf5','_skeletons.hdf5');
     
-%     cur_file = strtrim(file_name{iif});
-%     cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
-%     result_file = strrep(cur_file, '.hdf5','_skeletons.hdf5');
+    cur_file = strtrim(file_name{iif});
+    cur_file_now = strrep(cur_file, 'Results', 'MaskedVideos');
+    result_file = strrep(cur_file, '.hdf5','_skeletons.hdf5');
     
     % show the progress
     fprintf('%i/%i) %s\n', iif, numel(ini_loc),cur_file_now)
@@ -62,14 +62,14 @@ for iif = 1:numel(ini_loc);
         skeletons_file = strrep(result_file,gap_sym,'Z:');
         fprintf('%i) %s\n', iif, masked_image_file)
         video_timestamp_time = h5read(skeletons_file, '/timestamp/time');
-        if video_timestamp_time(end)> 60*61;
-            skip_file = [ skip_file; iif];
-            % 
-             fileID = fopen('stage_long_files.txt','a');
-             fprintf(fileID,'%s ',cur_file);
-             fclose(fileID);
-            continue;
-        end
+%         if video_timestamp_time(end)> 60*61;
+%             skip_file = [ skip_file; iif];
+%             % 
+%              fileID = fopen('stage_long_files.txt','a');
+%              fprintf(fileID,'%s ',cur_file);
+%              fclose(fileID);
+%             continue;
+%         end
         try
             % record if it successes, 0 or 1
             
@@ -80,18 +80,18 @@ for iif = 1:numel(ini_loc);
          success =[success;cur_suc];
          if cur_suc 
              % write to good file txt
-             fileID = fopen('stage_good_files.txt','a');
+             fileID = fopen('stage_good_long_files.txt','a');
              fprintf(fileID,'%s ',cur_file_now);
              fclose(fileID);
          else
              % write to bad file txt
-             fileID = fopen('stage_bad_files.txt','a');
+             fileID = fopen('stage_bad_long_files.txt','a');
              fprintf(fileID,'%s ',cur_file_now);
              fclose(fileID);
          end
     else
         % write to error file txt
-        fileID = fopen('stage_error_files.txt','a');
+        fileID = fopen('stage_error_long_files.txt','a');
         fprintf(fileID,'%s ',cur_file_now);
         fclose(fileID);
         error('file name error');
