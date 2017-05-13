@@ -2,9 +2,8 @@
 %[failed_files_all] = fscanf(fileID, '%s');
 %fclose(fileID);
 
-
 % change '/' to '\' due to the difference between python and matlab
-failed_files_all = strrep(fileread('stage_problems.txt'),'/','\');
+failed_files_all = strrep(fileread('aligned_in_old_db.txt'),'/','\');
 % replace folder
 gap_sym = '\Volumes\behavgenom_archive$';
 

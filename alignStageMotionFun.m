@@ -164,9 +164,9 @@ for  pp = 0:3;
         else
             % if it is in the 1st loop, calculate new 'frame_diffs'
             if pp == 0;
-                trajectories_data = h5read(skeletons_file, '/trajectories_data'); % trajectories data
-                diff_mask_central = [trajectories_data.cnt_coord_x(2:end)-trajectories_data.cnt_coord_x(1:end-1),...
-                    trajectories_data.cnt_coord_y(2:end)-trajectories_data.cnt_coord_y(1:end-1)];
+                blob_features = h5read(skeletons_file, '/blob_features'); % trajectories data
+                diff_mask_central = [blob_features.coord_x(2:end)-blob_features.coord_x(1:end-1),...
+                    blob_features.coord_y(2:end)-blob_features.coord_y(1:end-1)];
                 diff_mask_central_abs = sqrt(diff_mask_central(:,1).^2+diff_mask_central(:,2).^2);
                 % %calculate shift from cross correlation between frames, and get the absolute difference between images
                 [xShift, yShift] = shiftCrossCorrelation_fast(masked_image_file);
@@ -239,6 +239,7 @@ for  pp = 0:3;
                 h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
                 
                 fprintf('%s\n', masked_image_file)
+                fprintf('exit_flag: %s\n', num2str(exit_flag))
                 disp(ME)
                 
                 % give default values 
@@ -293,5 +294,5 @@ h5create(skeletons_file, '/stage_movement/is_stage_move', size(is_stage_move_d),
 h5write(skeletons_file, '/stage_movement/is_stage_move', is_stage_move_d);
 
 h5writeatt(skeletons_file, '/stage_movement', 'has_finished', uint8(exit_flag))
-disp('Finished.')
+disp('Finished. exit_flag: %s ', num2str(exit_flag))
 end
